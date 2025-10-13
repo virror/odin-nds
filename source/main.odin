@@ -54,7 +54,7 @@ main :: proc() {
     init_controller()
 
     resolution = {WIN_WIDTH * WIN_SCALE, WIN_HEIGHT * WIN_SCALE}
-    window = sdl.CreateWindow("odin-gba", i32(resolution.x), i32(resolution.y) * 2,
+    window = sdl.CreateWindow("odin-nds", i32(resolution.x), i32(resolution.y) * 2,
         sdl.WINDOW_VULKAN)
     assert(window != nil, "Failed to create main window")
     defer sdl.DestroyWindow(window)
@@ -173,7 +173,7 @@ main :: proc() {
             if(frame_cnt > 0.25) { //Update frame counter 4 times/s
                 frame_cnt = 0
                 frames := math.round(1.0 / accumulated_time)
-                line := fmt.caprintf("odin-gba - %s %.1ffps", file_name, frames)
+                line := fmt.caprintf("odin-nds - %s %.1ffps", file_name, frames)
                 sdl.SetWindowTitle(window, line)
             }
             accumulated_time = 0
