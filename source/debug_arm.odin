@@ -38,6 +38,52 @@ dbg_mull_mlal :: proc(opcode: u32) -> cstring {
     return op_name
 }
 
+dbg_clz :: proc(opcode: u32) -> cstring {
+    Rd := (opcode & 0xF0000) >> 16
+    Rm := (opcode & 0xF)
+    return fmt.caprintf("CLZ %s, %s", dbg_R2reg(Rd), dbg_R2reg(Rm))
+}
+
+dbg_qaddsub :: proc(opcode: u32) -> cstring {
+    op_name :cstring= "Undefined"
+    Op := utils_bit_get32(opcode, 21)
+    Rd := (opcode & 0xF0000) >> 16
+    Rn := (opcode & 0xF000) >> 12
+    Rm := (opcode & 0xF)
+
+    if(Op) {
+        op_name = fmt.caprintf("QSUB %s, %s, %s", dbg_R2reg(Rd), dbg_R2reg(Rn), dbg_R2reg(Rm))
+    } else {
+        op_name = fmt.caprintf("QADD %s, %s, %s", dbg_R2reg(Rd), dbg_R2reg(Rn), dbg_R2reg(Rm))
+    }
+    return op_name
+}
+
+dbg_mrc_mcr :: proc(opcode: u32) -> cstring {
+    op_name :cstring= "Undefined"
+    Op := utils_bit_get32(opcode, 20)
+    CRn := (opcode & 0xF0000) >> 16
+    Rd := (opcode & 0xF000) >> 12
+    coproc := (opcode & 0xF00) >> 8
+    CP := (opcode & 0xE0) >> 5
+    CRm := opcode & 0xF
+    
+    if(Op) {
+        op_name = fmt.caprintf("MCR p%d, %d, %s, c%d, c%d, %d", coproc, opcode2, dbg_R2reg(Rd), CRn, CRm, CP)
+    } else {
+        op_name = fmt.caprintf("MRC p%d, %d, %s, c%d, c%d, %d", coproc, opcode2, dbg_R2reg(Rd), CRn, CRm, CP)
+    }
+    return op_name
+}
+
+dbg_cdp :: proc(opcode: u32) -> cstring {
+    coproc := (opcode & 0xF00) >> 8
+    CRn := (opcode & 0xF0) >> 4
+    CRm := opcode & 0xF
+    opcode2 := (opcode & 0x7000) >> 12
+    return fmt.caprintf("CDP p%d, %d, c%d, c%d, c%d, %d", coproc, opcode2, CRn, CRm, opcode2)
+}
+
 dbg_hw_transfer :: proc(opcode: u32) -> cstring {
     op_name :cstring= "Undefined"
     I := utils_bit_get32(opcode, 22)

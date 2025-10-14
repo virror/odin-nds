@@ -232,6 +232,15 @@ debug_get_arm_names :: proc(opcode: u32) -> (cstring, cstring){
         }
         break
     }
+    case 0x1000000:
+        when ARMv == .ARMv5 {
+            if((opcode & 0xFFF0FF0) == 0x16F0F10) {
+                op_name = dbg_clz(opcode)
+            } else {
+                op_name = dbg_qaddsub(opcode)
+            }
+        }
+        break
     case 0x2000000: //ALU immediate
         op_name = dbg_alu(opcode, true)
         break
@@ -252,7 +261,15 @@ debug_get_arm_names :: proc(opcode: u32) -> (cstring, cstring){
         }
         break
     case 0xE000000: //SWI
-        op_name = "SWI "
+        if(utils_bit_get32(opcode, 24)) {
+            op_name = "SWI"
+        } else {
+            if(utils_bit_get32(opcode, 4)) {
+                op_name = dbg_mrc_mcr(opcode)
+            } else {
+                op_name = dbg_cdp(opcode)
+            }
+        }
         break
     }
     return op_name, suffix

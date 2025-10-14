@@ -230,6 +230,12 @@ handle_dbg_keys :: proc(event: ^sdl.Event) {
         step = true
     case sdl.K_ESCAPE:
         quit = true
+    case sdl.K_P:
+        if(!pause) {
+            pause_emu(true)
+        } else {
+            pause_emu(false)
+        }
     }
 }
 
