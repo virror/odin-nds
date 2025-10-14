@@ -4,22 +4,14 @@ import "core:fmt"
 import "core:os"
 import "core:path/filepath"
 
- Save_type :: enum {
-    UNDEFINED,
-    SRAM,
-    FLASH,
-}
-
 mem: [0xFFFFFFF]u8
 bios: [0x1000]u8
 ram_write: bool
-save_type: Save_type = .SRAM
 start_offset: u32
 
 bus_reset :: proc() {
     mem = {}
     ram_write = false
-    save_type = .SRAM
     bus_load_bios()
 }
 
@@ -203,7 +195,11 @@ bus_write16 :: proc(addr: u32, value: u16) {
 bus_get32 :: proc(addr: u32) -> u32 {
     addr := addr
     addr &= 0xFFFFFFFC
-    return (cast(^u32)&mem[addr])^
+    if(addr >= 0xFFFF0000) {
+        return (cast(^u32)&bios[addr - 0xFFFF0000])^
+    } else {
+        return (cast(^u32)&mem[addr])^
+    }
 }
 
 bus_set32 :: proc(addr: u32, value: u32) {
@@ -230,8 +226,8 @@ bus_write32 :: proc(addr: u32, value: u32) {
 }
 
 bus_irq_set :: proc(bit: u8) {
-    iflag := bus_get16(IO_IF)
-    bus_set16(IO_IF, utils_bit_set16(iflag, bit))
+    iflag := bus_get32(IO_IF)
+    bus_set32(IO_IF, utils_bit_set32(iflag, bit))
 }
 
 bus_init_no_bios :: proc() {
@@ -243,30 +239,4 @@ bus_init_no_bios :: proc() {
     regs[Regs.LR][0] = 0x08000000
     PC = 0x08000000 + start_offset
     cpu_refetch32()
-}
-
-bus_save_ram :: proc() {
-    if(ram_write) {
-        /*//std::filesystem::create_directory("saves")
-        std::ofstream myfile (ram_save_filename, std::ios::binary)
-        if (myfile.is_open()) {
-            for(int i = 0xE000000 i < 0xE00FFFF i++) {
-                myfile << mem[i]
-            }
-            myfile.close()
-        }
-        else {
-            std::cout << "Unable to save RAM"
-        }*/
-    }
-}
-
-bus_load_ram :: proc() {
-    /*std::ifstream ram_file (ram_save_filename, std::ios::binary)
-    if (ram_file.is_open()) {
-        for(int i = 0xE000000 i < 0xE00FFFF i++) {
-            ram_file.read((char *)&mem[i], sizeof(uint8_t))
-        }
-        ram_file.close()
-    }*/
 }

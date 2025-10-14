@@ -58,7 +58,7 @@ cpu_reset :: proc() {
     stop = false
     regs = {}
     pipeline = {}
-    PC = 0
+    PC = 0xFFFF0000
     CPSR = Flags(0)
     refetch = false
     cpu_init()
@@ -344,7 +344,11 @@ cpu_exec_arm :: proc(opcode: u32) -> u32 {
         retval = cpu_ldm_stm(opcode)
         break
     case 0xA000000: //B, BL, BLX
-        retval = cpu_b_bl(opcode)
+        if(cond == 0xF0000000) { //BLX immediate
+            retval = cpu_blx(opcode)
+        } else {
+            retval = cpu_b_bl(opcode)
+        }
         break
     case 0xC000000: //LDC, STC
         retval = cpu_ldc_stc(opcode)
@@ -986,12 +990,24 @@ cpu_b_bl :: proc(opcode: u32) -> u32 {
     offset := (opcode & 0xFFFFFF) << 2
     offset = utils_sign_extend32(offset, 26)
     L := utils_bit_get32(opcode, 24)
+
     if(L) { //BL
         cpu_reg_set(Regs.LR, PC - 4)
         cpu_reg_set(Regs.PC, u32(i32(PC) + i32(offset)))
     } else { //B
         cpu_reg_set(Regs.PC, u32(i32(PC) + i32(offset)))
     }
+    return 3
+}
+
+cpu_blx :: proc(opcode: u32) -> u32 {
+    offset := (opcode & 0xFFFFFF) << 2
+    offset = utils_sign_extend32(offset, 26)
+    H := u32(utils_bit_get32(opcode, 24))
+
+    cpu_reg_set(Regs.LR, PC - 4)
+    cpu_reg_set(Regs.PC, u32(i32(PC) + i32(offset)) + H * 2)
+    CPSR.Thumb = true
     return 3
 }
 

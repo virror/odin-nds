@@ -322,6 +322,20 @@ dbg_branch :: proc(opcode: u32) -> cstring {
     return fmt.caprintf("%s %d", op_name, i32(offset))
 }
 
+dbg_blx :: proc(opcode: u32) -> cstring {
+    op_name := "Undefined"
+    offset := (opcode & 0xFFFFFF) << 2
+    offset = utils_sign_extend32(offset, 26)
+    H := u32(utils_bit_get32(opcode, 24))
+    negative := (offset & (1 << 23)) != 0
+    if (negative) {
+        offset = offset | ~((1 << 18) - u32(1))
+    }
+
+    op_name = "BLX"
+    return fmt.caprintf("%s %d", op_name, i32(offset + (H << 1)))
+}
+
 dbg_R2reg :: proc(R: u32) -> cstring {
     reg: cstring
     if(R <= 12) {

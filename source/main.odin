@@ -13,7 +13,7 @@ WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
 DEBUG :: true
-START_BIOS :: false
+START_BIOS :: true
 
 @(private="file")
 window: ^sdl.Window
@@ -204,11 +204,9 @@ handle_events :: proc() {
         #partial switch(event.type) {
         case sdl.EventType.QUIT:
             quit = true
-            bus_save_ram()
             break
         case sdl.EventType.WINDOW_CLOSE_REQUESTED:
             quit = true
-            bus_save_ram()
             break
         case sdl.EventType.KEY_DOWN:
             handle_dbg_keys(&event)
@@ -265,8 +263,8 @@ init_controller :: proc() {
 reset_all :: proc() {
     ppu_reset()
     apu_reset()
-    cpu_reset()
     bus_reset()
+    cpu_reset()
     input_init()
 }
 
@@ -313,11 +311,16 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         reset_all()
         bus_load_rom(game_path)
         sdl.SetWindowTitle(window, fmt.caprintf("odin-gb - %s", file_name))
-        pause_emu(false)
+        when(DEBUG) {
+            pause_emu(true)
+        } else {
+            pause_emu(false)
+        }
         load_btn.disabled = true
         resume_btn.disabled = true
         when !START_BIOS {
             bus_init_no_bios()
         }
+        draw_debug()
     }
 }

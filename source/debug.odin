@@ -245,7 +245,11 @@ debug_get_arm_names :: proc(opcode: u32) -> (cstring, cstring){
         op_name = dbg_ldm_stm(opcode)
         break
     case 0xA000000: //B, BL, BLX
-        op_name = dbg_branch(opcode)
+        if(cond == 0xF0000000) { //BLX immediate
+            op_name = dbg_blx(opcode)
+        } else {
+            op_name = dbg_branch(opcode)
+        }
         break
     case 0xE000000: //SWI
         op_name = "SWI "
