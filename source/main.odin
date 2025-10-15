@@ -7,12 +7,13 @@ import "base:runtime"
 import sdl "vendor:sdl3"
 import sdlttf "vendor:sdl3/ttf"
 import "../../odin-libs/emu"
+import "../../odin-libs/cpu"
 
 WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
-DEBUG :: true
+DEBUG :: false
 START_BIOS :: true
 
 @(private="file")
@@ -121,7 +122,7 @@ main :: proc() {
         prev_time = time
 
         if((!pause || step) && !redraw && !buffer_is_full()) {
-            cycles := cpu_step()
+            cycles := cpu.cpu_step()
             cycles_since_last_sample += cycles
 
             /*tmr_step(&timer0, cycles)
@@ -143,6 +144,11 @@ main :: proc() {
             if(step) {
                 draw_debug()
                 step = false
+            }
+
+            if(PC == 0xFFFF01A0) {
+                pause_emu(true)
+                debug_draw()
             }
         }
 
@@ -270,7 +276,7 @@ reset_all :: proc() {
     ppu_reset()
     apu_reset()
     bus_reset()
-    cpu_reset()
+    cpu.cpu_reset()
     input_init()
 }
 

@@ -1,7 +1,7 @@
 package main
 
 import "core:fmt"
-
+/*
 shift :: proc(opcode: u16) -> cstring {
     op_name :cstring= "Undefined"
     op := opcode & 0x1800
@@ -429,3 +429,4 @@ bl :: proc(opcode: u16) -> cstring {
     op_name = fmt.caprintf("BL %d", i32(offset) + pc)
     return op_name
 }
+*/

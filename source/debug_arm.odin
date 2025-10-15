@@ -1,7 +1,7 @@
 package main
 
 import "core:fmt"
-
+/*
 dbg_mul_mla :: proc(opcode: u32) -> cstring {
     op_name :cstring= "Undefined"
     A := utils_bit_get32(opcode, 21)
@@ -405,3 +405,4 @@ dbg_R2reg :: proc(R: u32) -> cstring {
     }
     return reg
 }
+    */

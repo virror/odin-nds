@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import "core:os"
 import "core:path/filepath"
+import "../../odin-libs/cpu"
 
 mem: [0xFFFFFFF]u8
 bios: [0x1000]u8
@@ -136,9 +137,9 @@ bus_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
             mem[addr] = value
         case IO_HALTCNT:
             if(utils_bit_get16(u16(value), 7)) {
-                stop = true
+                cpu.cpu_stop()
             } else {
-                halt = true
+                cpu.cpu_halt()
             }
         case:
             mem[addr] = value
@@ -232,12 +233,12 @@ bus_irq_set :: proc(bit: u8) {
 }
 
 bus_init_no_bios :: proc() {
-    regs[Regs.R0][0] = 0x00000CA5
+    /*regs[Regs.R0][0] = 0x00000CA5
     CPSR = Flags(0x1F)
     regs[Regs.SP][u16(Modes.M_SUPERVISOR) - 16] = 0x03007FE0
     regs[Regs.SP][u16(Modes.M_IRQ) - 16] = 0x03007FA0
     regs[Regs.SP][0] = 0x03007F00
     regs[Regs.LR][0] = 0x08000000
     PC = 0x08000000 + start_offset
-    cpu_refetch32()
+    cpu_refetch32()*/
 }
