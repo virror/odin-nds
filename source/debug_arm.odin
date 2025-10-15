@@ -61,17 +61,18 @@ dbg_qaddsub :: proc(opcode: u32) -> cstring {
 
 dbg_mrc_mcr :: proc(opcode: u32) -> cstring {
     op_name :cstring= "Undefined"
+    cpopc := (opcode & 0xE00000) >> 21
     Op := utils_bit_get32(opcode, 20)
     CRn := (opcode & 0xF0000) >> 16
     Rd := (opcode & 0xF000) >> 12
-    coproc := (opcode & 0xF00) >> 8
+    Pn := (opcode & 0xF00) >> 8
     CP := (opcode & 0xE0) >> 5
     CRm := opcode & 0xF
     
     if(Op) {
-        op_name = fmt.caprintf("MCR p%d, %d, %s, c%d, c%d, %d", coproc, opcode2, dbg_R2reg(Rd), CRn, CRm, CP)
+        op_name = fmt.caprintf("MRC p%d, %d, %s, c%d, c%d, %d", Pn, cpopc, dbg_R2reg(Rd), CRn, CRm, CP)
     } else {
-        op_name = fmt.caprintf("MRC p%d, %d, %s, c%d, c%d, %d", coproc, opcode2, dbg_R2reg(Rd), CRn, CRm, CP)
+        op_name = fmt.caprintf("MCR p%d, %d, %s, c%d, c%d, %d", Pn, cpopc, dbg_R2reg(Rd), CRn, CRm, CP)
     }
     return op_name
 }
@@ -126,7 +127,16 @@ dbg_swap :: proc(opcode: u32) -> cstring {
 
 dbg_bx :: proc(opcode: u32) -> cstring {
     Rn := opcode & 0xF
-    return fmt.caprintf("BX %s", dbg_R2reg(Rn))
+    when(ARMv == .ARMv5) {
+      op := (opcode >> 4) & 3
+      if(op == 3) {
+          return fmt.caprintf("BLX %s", dbg_R2reg(Rn))
+      } else {
+          return fmt.caprintf("BX %s", dbg_R2reg(Rn))
+      }
+    } else {
+        return fmt.caprintf("BX %s", dbg_R2reg(Rn))
+    }
 }
 
 dbg_alu :: proc(opcode: u32, I: bool) -> cstring {

@@ -327,7 +327,7 @@ cpu_exec_arm :: proc(opcode: u32) -> u32 {
     switch(id) {
     case 0x0000000:
     {
-        if((opcode & 0xFFFFFF0) == 0x12FFF10) {
+        if((opcode & 0xFFFFFC0) == 0x12FFF00) {
             retval = cpu_bx(opcode)
         } else if((opcode & 0x10000F0) == 0x0000090) { //MUL, MLA
             if(utils_bit_get32(opcode, 23)) { //MULL, MLAL
@@ -1127,8 +1127,25 @@ cpu_cdp :: proc(opcode: u32) -> u32 {
 }
 
 cpu_mrc_mcr :: proc(opcode: u32) -> u32 {
-    //cpu_unknown_irq()
-    PC += 4
+    when ARMv == .ARMv5 {
+        Op := utils_bit_get32(opcode, 20)
+        CRn := (opcode & 0xF0000) >> 16
+        Rd := Regs((opcode & 0xF000) >> 12)
+        Pn := (opcode & 0xF00) >> 8
+        CP := (opcode & 0xE0) >> 5
+        CRm := opcode & 0xF
+        PC += 4
+        if(Pn == 15) {
+            if(Op) {
+                cpu_reg_set(Rd, cp15_read(CRn, CRm, CP))
+            } else {
+                cp15_write(CRn, CRm, CP, cpu_reg_get(Rd))
+            }
+            
+        }
+    } else {
+        cpu_unknown_irq()
+    }
     return 3
 }
 
