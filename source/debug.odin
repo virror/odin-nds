@@ -3,6 +3,7 @@ package main
 import "core:fmt"
 import sdl "vendor:sdl3"
 import sdlttf "vendor:sdl3/ttf"
+import "../../odin-libs/cpu"
 when(DEBUG) {
 font: ^sdlttf.Font
 
@@ -11,41 +12,42 @@ debug_init :: proc() {
 }
 
 debug_draw :: proc() {
-    debug_draw_reg("PC  ", cpu_reg_raw(Regs.PC, Modes.M_USER), 10, 10)
-    debug_draw_reg("R0  ", cpu_reg_raw(Regs.R0, Modes.M_USER), 180, 10)
-    debug_draw_reg("R1  ", cpu_reg_raw(Regs.R1, Modes.M_USER), 10, 35)
-    debug_draw_reg("R2  ", cpu_reg_raw(Regs.R2, Modes.M_USER), 180, 35)
-    debug_draw_reg("R3  ", cpu_reg_raw(Regs.R3, Modes.M_USER), 10, 60)
-    debug_draw_reg("R4  ", cpu_reg_raw(Regs.R4, Modes.M_USER), 180, 60)
-    debug_draw_reg("R5  ", cpu_reg_raw(Regs.R5, Modes.M_USER), 10, 85)
-    debug_draw_reg("R6  ", cpu_reg_raw(Regs.R6, Modes.M_USER), 180, 85)
-    debug_draw_reg("R7  ", cpu_reg_raw(Regs.R7, Modes.M_USER), 10, 110)
-    debug_draw_reg("R8  ", cpu_reg_get(Regs.R8), 180, 110)
-    debug_draw_reg("R9  ", cpu_reg_get(Regs.R9), 10, 135)
-    debug_draw_reg("R10 ", cpu_reg_get(Regs.R10), 180, 135)
-    debug_draw_reg("R11 ", cpu_reg_get(Regs.R11), 10, 160)
-    debug_draw_reg("R12 ", cpu_reg_get(Regs.R12), 180, 160)
+    cpsr := cpu.arm9_get_cpsr()
+    debug_draw_reg("PC  ", cpu.arm9_reg_get(cpu.Regs.PC), 10, 10)
+    debug_draw_reg("R0  ", cpu.arm9_reg_get(cpu.Regs.R0), 180, 10)
+    debug_draw_reg("R1  ", cpu.arm9_reg_get(cpu.Regs.R1), 10, 35)
+    debug_draw_reg("R2  ", cpu.arm9_reg_get(cpu.Regs.R2), 180, 35)
+    debug_draw_reg("R3  ", cpu.arm9_reg_get(cpu.Regs.R3), 10, 60)
+    debug_draw_reg("R4  ", cpu.arm9_reg_get(cpu.Regs.R4), 180, 60)
+    debug_draw_reg("R5  ", cpu.arm9_reg_get(cpu.Regs.R5), 10, 85)
+    debug_draw_reg("R6  ", cpu.arm9_reg_get(cpu.Regs.R6), 180, 85)
+    debug_draw_reg("R7  ", cpu.arm9_reg_get(cpu.Regs.R7), 10, 110)
+    debug_draw_reg("R8  ", cpu.arm9_reg_get(cpu.Regs.R8), 180, 110)
+    debug_draw_reg("R9  ", cpu.arm9_reg_get(cpu.Regs.R9), 10, 135)
+    debug_draw_reg("R10 ", cpu.arm9_reg_get(cpu.Regs.R10), 180, 135)
+    debug_draw_reg("R11 ", cpu.arm9_reg_get(cpu.Regs.R11), 10, 160)
+    debug_draw_reg("R12 ", cpu.arm9_reg_get(cpu.Regs.R12), 180, 160)
 
-    debug_draw_reg2("SP(R13)  ", cpu_reg_raw(Regs.SP, Modes.M_USER), 10, 210, Modes.M_SYSTEM)
-    debug_draw_reg2("SP_fiq   ", cpu_reg_raw(Regs.SP, Modes.M_FIQ), 240, 210, Modes.M_FIQ)
-    debug_draw_reg2("SP_svc   ", cpu_reg_raw(Regs.SP, Modes.M_SUPERVISOR), 10, 235, Modes.M_SUPERVISOR)
-    debug_draw_reg2("SP_abt   ", cpu_reg_raw(Regs.SP, Modes.M_ABORT), 240, 235, Modes.M_ABORT)
-    debug_draw_reg2("SP_irq   ", cpu_reg_raw(Regs.SP, Modes.M_IRQ), 10, 260, Modes.M_IRQ)
-    debug_draw_reg2("SP_und   ", cpu_reg_raw(Regs.SP, Modes.M_UNDEFINED), 240, 260, Modes.M_UNDEFINED)
+    debug_draw_reg2("SP(R13)  ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_USER), 10, 210, cpu.Modes.M_USER)
+    debug_draw_reg2("SP_fiq   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_FIQ), 240, 210, cpu.Modes.M_FIQ)
+    debug_draw_reg2("SP_svc   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_SUPERVISOR), 10, 235, cpu.Modes.M_SUPERVISOR)
+    debug_draw_reg2("SP_abt   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_ABORT), 240, 235, cpu.Modes.M_ABORT)
+    debug_draw_reg2("SP_irq   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_IRQ), 10, 260, cpu.Modes.M_IRQ)
+    debug_draw_reg2("SP_und   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_UNDEFINED), 240, 260, cpu.Modes.M_UNDEFINED)
 
-    debug_draw_reg2("LR(R14)  ", cpu_reg_raw(Regs.LR, Modes.M_USER), 10, 285, Modes.M_SYSTEM)
-    debug_draw_reg2("LR_fiq   ", cpu_reg_raw(Regs.LR, Modes.M_FIQ), 240, 285, Modes.M_FIQ)
-    debug_draw_reg2("LR_svc   ", cpu_reg_raw(Regs.LR, Modes.M_SUPERVISOR), 10, 310, Modes.M_SUPERVISOR)
-    debug_draw_reg2("LR_abt   ", cpu_reg_raw(Regs.LR, Modes.M_ABORT), 240, 310, Modes.M_ABORT)
-    debug_draw_reg2("LR_irq   ", cpu_reg_raw(Regs.LR, Modes.M_IRQ), 10, 335, Modes.M_IRQ)
-    debug_draw_reg2("LR_und   ", cpu_reg_raw(Regs.LR, Modes.M_UNDEFINED), 240, 335, Modes.M_UNDEFINED)
+    debug_draw_reg2("LR(R14)  ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_USER), 10, 285, cpu.Modes.M_USER)
+    debug_draw_reg2("LR_fiq   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_FIQ), 240, 285, cpu.Modes.M_FIQ)
+    debug_draw_reg2("LR_svc   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_SUPERVISOR), 10, 310, cpu.Modes.M_SUPERVISOR)
+    debug_draw_reg2("LR_abt   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_ABORT), 240, 310, cpu.Modes.M_ABORT)
+    debug_draw_reg2("LR_irq   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_IRQ), 10, 335, cpu.Modes.M_IRQ)
+    debug_draw_reg2("LR_und   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_UNDEFINED), 240, 335, cpu.Modes.M_UNDEFINED)
 
-    debug_draw_reg("CPSR     ", u32(CPSR), 10, 360)
-    debug_draw_reg2("SPSR_fiq ", cpu_reg_raw(Regs.SPSR, Modes.M_FIQ), 240, 360, Modes.M_FIQ)
-    debug_draw_reg2("SPSR_svc ", cpu_reg_raw(Regs.SPSR, Modes.M_SUPERVISOR), 10, 385, Modes.M_SUPERVISOR)
-    debug_draw_reg2("SPSR_abt ", cpu_reg_raw(Regs.SPSR, Modes.M_ABORT), 240, 385, Modes.M_ABORT)
-    debug_draw_reg2("SPSR_irq ", cpu_reg_raw(Regs.SPSR, Modes.M_IRQ), 10, 410, Modes.M_IRQ)
-    debug_draw_reg2("SPSR_und ", cpu_reg_raw(Regs.SPSR, Modes.M_UNDEFINED), 240, 410, Modes.M_UNDEFINED)
+    debug_draw_reg("CPSR     ", u32(cpsr), 10, 360)
+    debug_draw_reg2("SPSR_fiq ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_FIQ), 240, 360, cpu.Modes.M_FIQ)
+    debug_draw_reg2("SPSR_svc ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_SUPERVISOR), 10, 385, cpu.Modes.M_SUPERVISOR)
+    debug_draw_reg2("SPSR_abt ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_ABORT), 240, 385, cpu.Modes.M_ABORT)
+    debug_draw_reg2("SPSR_irq ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_IRQ), 10, 410, cpu.Modes.M_IRQ)
+    debug_draw_reg2("SPSR_und ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_UNDEFINED), 240, 410, cpu.Modes.M_UNDEFINED)
 
     debug_draw_flag("N    ", 31, 350, 10)
     debug_draw_flag("Z    ", 30, 350, 35)
@@ -54,42 +56,41 @@ debug_draw :: proc() {
     debug_draw_flag("!IRQ ", 7, 350, 110)
     debug_draw_flag("!FIQ ", 6, 350, 135)
 
-
-    state :cstring= CPSR.Thumb ? "THUMB" : "ARM"
+    state :cstring= cpsr.Thumb ? "THUMB" : "ARM"
     line0 := fmt.caprintf("%s %s", "State: ", state)
     debug_text(line0, 350, 160, {230, 230, 230, 230})
 
-    mode := CPSR.Mode
+    mode := cpsr.Mode
     mode_name: cstring
     switch(mode) {
-    case Modes.M_USER:
+    case cpu.Modes.M_USER:
         mode_name = "User"
         break
-    case Modes.M_FIQ:
+    case cpu.Modes.M_FIQ:
         mode_name = "FIQ"
         break
-    case Modes.M_IRQ:
+    case cpu.Modes.M_IRQ:
         mode_name = "IRQ"
         break
-    case Modes.M_SUPERVISOR:
+    case cpu.Modes.M_SUPERVISOR:
         mode_name = "Supervisor"
         break
-    case Modes.M_ABORT:
+    case cpu.Modes.M_ABORT:
         mode_name = "Abort"
         break
-    case Modes.M_UNDEFINED:
+    case cpu.Modes.M_UNDEFINED:
         mode_name = "Undefined"
         break
-    case Modes.M_SYSTEM:
+    case cpu.Modes.M_SYSTEM:
         mode_name = "System"
         break
     case:
         mode_name = "Error!"
     }
-    line := fmt.caprintf("%s %s", "Mode: ", mode_name)
-    debug_text(line, 10, 185, {230, 230, 230, 230}) //TODO: Add MODE before string
+    line := fmt.caprintf("Mode: %s", mode_name)
+    debug_text(line, 10, 185, {230, 230, 230, 230})
 
-    if(CPSR.Thumb) { //THUMB
+    if(cpsr.Thumb) { //THUMB
         debug_draw_op_thumb("->", 0, 10, 510)
         debug_draw_op_thumb("  ", 1, 10, 535)
     } else {
@@ -99,14 +100,14 @@ debug_draw :: proc() {
 }
 
 debug_draw_op_arm :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := pipeline[pc]
+    op := cpu.arm9_get_instruction()
     name, suffix := debug_get_arm_names(op)
     line := fmt.caprintf("%s %8x %s %s", opText, op, name, suffix)
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
 debug_draw_op_thumb :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := u16(pipeline[pc])
+    op := u16(cpu.arm9_get_instruction())
     name := debug_get_thumb_names(op)
     line := fmt.caprintf("%s %4x %s", opText, op, name)
     debug_text(line, posX, posY, {230, 230, 230, 230})
@@ -117,21 +118,22 @@ debug_draw_reg :: proc(regText: cstring, reg: u32, posX: f32, posY: f32) {
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
-debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: Modes) {
-    current_mode := CPSR.Mode
-    if(current_mode == Modes.M_USER) {
-        current_mode = Modes.M_SYSTEM
+debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: cpu.Modes) {
+    current_mode := cpu.arm9_get_cpsr().Mode
+    if(current_mode == cpu.Modes.M_USER) {
+        current_mode = cpu.Modes.M_SYSTEM
     }
     line := fmt.caprintf("%s %8x", regText, reg)
     if(current_mode == mode) {
         debug_text(line, posX, posY, {230, 230, 230, 230})
     } else {
-        debug_text(line, posX, posY, {230, 230, 230, 230})
+        debug_text(line, posX, posY, {130, 130, 130, 230})
     }
 }
 
 debug_draw_flag :: proc(flagText: cstring, flag: u8, posX: f32, posY: f32) {
-    line := fmt.caprintf("%s %s", flagText, utils_bit_get32(u32(CPSR), flag)?"true":"false")
+    cpsr := cpu.arm9_get_cpsr()
+    line := fmt.caprintf("%s %s", flagText, utils_bit_get32(u32(cpsr), flag)?"true":"false")
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
@@ -233,12 +235,10 @@ debug_get_arm_names :: proc(opcode: u32) -> (cstring, cstring){
         break
     }
     case 0x1000000:
-        when ARMv == .ARMv5 {
-            if((opcode & 0xFFF0FF0) == 0x16F0F10) {
-                op_name = dbg_clz(opcode)
-            } else {
-                op_name = dbg_qaddsub(opcode)
-            }
+        if((opcode & 0xFFF0FF0) == 0x16F0F10) {
+            op_name = dbg_clz(opcode)
+        } else {
+            op_name = dbg_qaddsub(opcode)
         }
         break
     case 0x2000000: //ALU immediate

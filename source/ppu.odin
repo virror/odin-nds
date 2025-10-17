@@ -70,7 +70,7 @@ ppu_step :: proc(cycles: u32) -> bool {
     ready_draw: bool
     cycle_count += cycles
 
-    if(cpu.cpu_get_stop()) {
+    if(cpu.arm9_get_stop()) {
         return false
     }
 

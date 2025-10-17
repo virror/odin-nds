@@ -13,8 +13,8 @@ WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
-DEBUG :: false
-START_BIOS :: true
+DEBUG :: true
+START_BIOS :: false
 
 @(private="file")
 window: ^sdl.Window
@@ -93,6 +93,7 @@ main :: proc() {
 
     assert(audio_stream != nil, "Failed to create audio device") // TODO: Handle error
 
+    bus_init()
     /*tmr_init(&timer0, 0)
     tmr_init(&timer1, 1)
     tmr_init(&timer2, 2)
@@ -122,7 +123,7 @@ main :: proc() {
         prev_time = time
 
         if((!pause || step) && !redraw && !buffer_is_full()) {
-            cycles := cpu.cpu_step()
+            cycles := cpu.arm9_step()
             cycles_since_last_sample += cycles
 
             /*tmr_step(&timer0, cycles)
@@ -146,10 +147,10 @@ main :: proc() {
                 step = false
             }
 
-            if(PC == 0xFFFF01A0) {
+            /*if(PC == 0xFFFF01A0) {
                 pause_emu(true)
-                debug_draw()
-            }
+                draw_debug()
+            }*/
         }
 
         if(accumulated_time > step_length) {
@@ -276,7 +277,6 @@ reset_all :: proc() {
     ppu_reset()
     apu_reset()
     bus_reset()
-    cpu.cpu_reset()
     input_init()
 }
 
@@ -331,7 +331,10 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         load_btn.disabled = true
         resume_btn.disabled = true
         when !START_BIOS {
-            bus_init_no_bios()
+            cpu.arm9_init_no_bios()
+            cpu.arm9_reset(0x08000000 + start_offset)
+        } else {
+            cpu.arm9_reset(0xFFFF0000)
         }
         draw_debug()
     }

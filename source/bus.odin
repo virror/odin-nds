@@ -10,6 +10,19 @@ bios: [0x1000]u8
 ram_write: bool
 start_offset: u32
 
+bus_init :: proc() {
+    cpu.bus_read8 = bus_read8
+    cpu.bus_read16 = bus_read16
+    cpu.bus_read32 = bus_read32
+    cpu.bus_write8 = bus_write8
+    cpu.bus_write16 = bus_write16
+    cpu.bus_write32 = bus_write32
+    cpu.bus_get16 = bus_get16
+    cpu.bus_get32 = bus_get32
+    cpu.cp15_read = cp15_read
+    cpu.cp15_write = cp15_write
+}
+
 bus_reset :: proc() {
     mem = {}
     ram_write = false
@@ -137,9 +150,9 @@ bus_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
             mem[addr] = value
         case IO_HALTCNT:
             if(utils_bit_get16(u16(value), 7)) {
-                cpu.cpu_stop()
+                cpu.arm9_stop()
             } else {
-                cpu.cpu_halt()
+                cpu.arm9_halt()
             }
         case:
             mem[addr] = value
@@ -230,15 +243,4 @@ bus_write32 :: proc(addr: u32, value: u32) {
 bus_irq_set :: proc(bit: u8) {
     iflag := bus_get32(IO_IF)
     bus_set32(IO_IF, utils_bit_set32(iflag, bit))
-}
-
-bus_init_no_bios :: proc() {
-    /*regs[Regs.R0][0] = 0x00000CA5
-    CPSR = Flags(0x1F)
-    regs[Regs.SP][u16(Modes.M_SUPERVISOR) - 16] = 0x03007FE0
-    regs[Regs.SP][u16(Modes.M_IRQ) - 16] = 0x03007FA0
-    regs[Regs.SP][0] = 0x03007F00
-    regs[Regs.LR][0] = 0x08000000
-    PC = 0x08000000 + start_offset
-    cpu_refetch32()*/
 }

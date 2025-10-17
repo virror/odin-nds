@@ -1,7 +1,7 @@
 package main
 
 import "core:fmt"
-/*
+
 dbg_mul_mla :: proc(opcode: u32) -> cstring {
     op_name :cstring= "Undefined"
     A := utils_bit_get32(opcode, 21)
@@ -127,13 +127,9 @@ dbg_swap :: proc(opcode: u32) -> cstring {
 
 dbg_bx :: proc(opcode: u32) -> cstring {
     Rn := opcode & 0xF
-    when(ARMv == .ARMv5) {
-      op := (opcode >> 4) & 3
-      if(op == 3) {
-          return fmt.caprintf("BLX %s", dbg_R2reg(Rn))
-      } else {
-          return fmt.caprintf("BX %s", dbg_R2reg(Rn))
-      }
+    op := (opcode >> 4) & 3
+    if(op == 3) {
+        return fmt.caprintf("BLX %s", dbg_R2reg(Rn))
     } else {
         return fmt.caprintf("BX %s", dbg_R2reg(Rn))
     }
@@ -405,4 +401,3 @@ dbg_R2reg :: proc(R: u32) -> cstring {
     }
     return reg
 }
-    */
