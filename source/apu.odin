@@ -132,14 +132,14 @@ apu_load_length_counter_noise :: proc(len: u8) {
 
 apu_disable :: proc(channel: ^Square) {
     status_bit := ~(1 << u8(channel.type))
-    status := bus_get8(channel.status)
-    bus_set8(channel.status, status & u8(status_bit))
+    status := bus7_get8(channel.status)
+    bus7_set8(channel.status, status & u8(status_bit))
 }
 
 apu_enable :: proc(channel: ^Square) {
     status_bit := (1 << u8(channel.type))
-    status := bus_get8(channel.status)
-    bus_set8(channel.status, status & u8(status_bit))
+    status := bus7_get8(channel.status)
+    bus7_set8(channel.status, status & u8(status_bit))
 }
 
 apu_read_wave_sample :: proc(channel: ^Square) -> u8 {
@@ -385,11 +385,11 @@ apu_trigger_noise :: proc() {
 }
 
 apu_a_timer :: proc() -> u8 {
-    return bus_get8(IO_SOUNDCNT_H + 1) & 0x04
+    return bus7_get8(IO_SOUNDCNT_H + 1) & 0x04
 }
 
 apu_b_timer :: proc() -> u8 {
-    return bus_get8(IO_SOUNDCNT_H + 1) & 0x40
+    return bus7_get8(IO_SOUNDCNT_H + 1) & 0x40
 }
 
 apu_step_a :: proc() {
@@ -474,55 +474,55 @@ apu_output :: proc() -> f32 {
 apu_read :: proc(addr: u32) -> u8 {
     switch(addr) {
     case IO_SOUND1CNT_L:
-        return bus_get8(addr) & 0x7F
+        return bus7_get8(addr) & 0x7F
     case IO_SOUND1CNT_L + 1:
         return 0
     case IO_SOUND1CNT_H:
-        return bus_get8(addr) & 0xC0
+        return bus7_get8(addr) & 0xC0
     case IO_SOUND1CNT_H + 1:
-        return bus_get8(addr)
+        return bus7_get8(addr)
     case IO_SOUND1CNT_X:
         return 0
     case IO_SOUND1CNT_X + 1:
-        return bus_get8(addr) & 0x40
+        return bus7_get8(addr) & 0x40
     case IO_SOUND2CNT_L:
-        return bus_get8(addr) & 0xC0
+        return bus7_get8(addr) & 0xC0
     case IO_SOUND2CNT_L + 1:
-        return bus_get8(addr)   
+        return bus7_get8(addr)   
     case IO_SOUND2CNT_H:
         return 0
     case IO_SOUND2CNT_H + 1:
-        return bus_get8(addr) & 0x40
+        return bus7_get8(addr) & 0x40
     case IO_SOUND3CNT_L:
-        return bus_get8(addr) & 0xE0
+        return bus7_get8(addr) & 0xE0
     case IO_SOUND3CNT_L + 1:
         return 0
     case IO_SOUND3CNT_H:
         return 0
     case IO_SOUND3CNT_H + 1:
-        return bus_get8(addr) & 0xE0
+        return bus7_get8(addr) & 0xE0
     case IO_SOUND3CNT_X:
         return 0
     case IO_SOUND3CNT_X + 1:
-        return bus_get8(addr) & 0x40
+        return bus7_get8(addr) & 0x40
     case IO_SOUND4CNT_L:
         return 0
     case IO_SOUND4CNT_L + 1:
-        return bus_get8(addr)   
+        return bus7_get8(addr)   
     case IO_SOUND4CNT_H:
-        return bus_get8(addr)
+        return bus7_get8(addr)
     case IO_SOUND4CNT_H + 1:
-        return bus_get8(addr) & 0x40
+        return bus7_get8(addr) & 0x40
     case IO_SOUNDCNT_L:
-        return bus_get8(addr) & 0x77
+        return bus7_get8(addr) & 0x77
     case IO_SOUNDCNT_L + 1:
-        return bus_get8(addr)
+        return bus7_get8(addr)
     case IO_SOUNDCNT_H:
-        return bus_get8(addr) & 0x0F
+        return bus7_get8(addr) & 0x0F
     case IO_SOUNDCNT_H + 1:
-        return bus_get8(addr) & 0x77
+        return bus7_get8(addr) & 0x77
     case IO_SOUNDCNT_X:
-        return bus_get8(addr) & 0x80
+        return bus7_get8(addr) & 0x80
     case IO_SOUNDCNT_X + 1:
         return 0
     case 0x400008C,

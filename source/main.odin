@@ -93,7 +93,8 @@ main :: proc() {
 
     assert(audio_stream != nil, "Failed to create audio device") // TODO: Handle error
 
-    bus_init()
+    bus7_init()
+    bus9_init()
     /*tmr_init(&timer0, 0)
     tmr_init(&timer1, 1)
     tmr_init(&timer2, 2)
@@ -276,7 +277,8 @@ init_controller :: proc() {
 reset_all :: proc() {
     ppu_reset()
     apu_reset()
-    bus_reset()
+    bus7_reset()
+    bus9_reset()
     input_init()
 }
 
@@ -321,7 +323,7 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
     game_path := string(filelist[0])
     if(game_path != "") {
         reset_all()
-        bus_load_rom(game_path)
+        bus9_load_rom(game_path)
         sdl.SetWindowTitle(window, fmt.caprintf("odin-gb - %s", file_name))
         when(DEBUG) {
             pause_emu(true)
@@ -331,9 +333,12 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         load_btn.disabled = true
         resume_btn.disabled = true
         when !START_BIOS {
+            cpu.arm7_init_no_bios()
+            cpu.arm7_reset(0x08000000 + start_offset)
             cpu.arm9_init_no_bios()
             cpu.arm9_reset(0x08000000 + start_offset)
         } else {
+            cpu.arm7_reset(0x00000000)
             cpu.arm9_reset(0xFFFF0000)
         }
         draw_debug()
