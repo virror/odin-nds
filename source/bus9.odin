@@ -23,6 +23,7 @@ bios: [0x1000]u8
 @(private="file")
 bus9: Bus
 rom_header: Rom_header
+RAM: [0x400000]u8
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -97,10 +98,10 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
     switch(addr_id) {
     case 0x00000000: //Instruction TCM
         break
-    case 0x02000000: //WRAM
-        addr &= 0x32FFFFF
-        break
-    case 0x03000000: //WRAM
+    case 0x02000000: //Main RAM
+        addr &= 0x3FFFFF
+        return RAM[addr - 0x2000000]
+    case 0x03000000: //Shared RAM
         addr &= 0x3007FFF
         break
     case 0x04000000: //IO
@@ -155,10 +156,11 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
     switch(addr_id) {
     case 0x0000000: //BIOS
         return //Read only
-    case 0x2000000: //WRAM
-        addr &= 0x32FFFFF
-        break
-    case 0x3000000: //WRAM
+    case 0x2000000: //Main RAM
+        addr &= 0x3FFFFF
+        RAM[addr - 0x2000000] = value
+        return
+    case 0x3000000: //Shared RAM
         addr &= 0x3007FFF
         break
     case 0x4000000: //IO
