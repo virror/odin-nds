@@ -18,11 +18,13 @@ Bus :: struct {
     set8: proc(addr: u32, value: u8),
     set16: proc(addr: u32, value: u16),
     set32: proc(addr: u32, value: u32),
+    irq_set: proc(bit: u8),
 }
 
 @(private="file")
 mem: [0xFFFFFFF]u8
-bus7: ^Bus
+@(private="file")
+bus7: Bus
 
 bus7_init :: proc() {
     bus7.read8 = bus7_read8
@@ -37,6 +39,7 @@ bus7_init :: proc() {
     bus7.set8 = bus7_set8
     bus7.set16 = bus7_set16
     bus7.set32 = bus7_set32
+    bus7.irq_set = bus7_irq_set
 
     cpu.bus_read8 = bus7_read8
     cpu.bus_read16 = bus7_read16
@@ -59,6 +62,11 @@ bus7_load_bios :: proc() {
     _, err2 := os.read(file, mem[:])
     assert(err2 == nil, "Failed to read bios data")
     os.close(file)
+}
+
+bus7_load_rom :: proc(file: os.Handle) {
+    os.seek(file, cast(i64)(rom_header.rom_offset7), os.SEEK_SET)
+    os.read(file, mem[rom_header.ram_address7:rom_header.ram_address7 + rom_header.size7])
 }
 
 bus7_get8 :: proc(addr: u32) -> u8 {
@@ -88,7 +96,7 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         case 0x4000060..=0x40000AF:
             return apu_read(addr)
         case 0x40000B0..=0x40000FF:
-            return dma_read(addr, bus7)
+            return dma_read(addr, &bus7)
         case 0x4000100..=0x4000110:
             return tmr_read(addr)
 
@@ -145,7 +153,7 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         case 0x4000060..=0x40000AF:
             apu_write(addr, value)
         case 0x40000B0..=0x40000FF:
-            dma_write(addr, value, bus7)
+            dma_write(addr, value, &bus7)
         case 0x4000100..=0x4000110:
             tmr_write(addr, value)
 

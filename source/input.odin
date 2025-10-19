@@ -43,11 +43,13 @@ input_handle_irq :: proc() {
         keys = (~keys) & 0x03FF
         if(utils_bit_get16(key_cnt, 15)) { //AND mode
             if(key_int == keys) {
-                bus_irq_set(12)
+                bus7_irq_set(12)
+                bus9_irq_set(12)
             }
         } else { //OR mode
             if((key_int & keys) > 0) {
-                bus_irq_set(12)
+                bus7_irq_set(12)
+                bus9_irq_set(12)
             }
         }
     }

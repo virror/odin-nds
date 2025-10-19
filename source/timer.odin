@@ -18,10 +18,12 @@ Timer :: struct {
     count_up_timer: ^Timer,
     index: u8,
     tmcnt: TMCNT,
+    bus: ^Bus,
 }
 
-tmr_init :: proc(timer: ^Timer, index: u8) {
+tmr_init :: proc(timer: ^Timer, index: u8, bus: ^Bus) {
     timer.index = index
+    timer.bus = bus
     switch(index) {
     case 0:
         timer.count_up_timer = &timer1
@@ -78,7 +80,7 @@ tmr_increment :: proc(timer: ^Timer, cycles: u32) {
             tmr_step_count_up(timer.count_up_timer, 1)
         }
         if(timer.tmcnt.irq) {
-            bus_irq_set(timer.index + 3)
+            timer.bus.irq_set(timer.index + 3)
         }
         if(apu_a_timer() == timer.index) {
             apu_step_a()

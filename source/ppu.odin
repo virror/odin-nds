@@ -85,7 +85,7 @@ ppu_step :: proc(cycles: u32) -> bool {
             dma_transfer_h_blank(&dma2)
             dma_transfer_h_blank(&dma3)
             if(utils_bit_get16(dispstat, 4)) {
-                bus_irq_set(1)
+                bus9_irq_set(1)
             }
             mode := ppu_get_mode()
             switch(mode) {
@@ -120,7 +120,7 @@ ppu_step :: proc(cycles: u32) -> bool {
                 dma_transfer_v_blank(&dma2)
                 dma_transfer_v_blank(&dma3)
                 if(utils_bit_get16(dispstat, 3)) {
-                    bus_irq_set(0)
+                    bus9_irq_set(0)
                 }
             } else { //Go and draw next line
                 current_state = Ppu_states.DRAW
@@ -145,7 +145,7 @@ ppu_step :: proc(cycles: u32) -> bool {
             if(line_count >= 262) { //End of VBLANK, loop back
                 current_state = Ppu_states.DRAW
                 ppu_set_line(0)
-                bg := bus_get16(BG_PALETTE)
+                bg := bus9_get16(BG_PALETTE)
                 for i in 0..<len(screen_buffer) {
                     ppu_set_pixel(bg, u32(i))
                 }
@@ -181,7 +181,7 @@ ppu_set_line :: proc(count: u16) {
     if(vcnt == line_count) {
         dispstat = utils_bit_set16(dispstat, 2)
         if(utils_bit_get16(dispstat, 5)) {
-            bus_irq_set(2)
+            bus9_irq_set(2)
         }
     } else {
         dispstat = utils_bit_clear16(dispstat, 2)
@@ -197,8 +197,8 @@ ppu_draw_mode_0 :: proc() {
 
     if(obj_on) {
         for k :i32= 127; k >= 0; k -= 1 {
-            attr := u64(bus_get32(OAM + u32(k) * 8))
-            attr += u64(bus_get32(OAM + u32(k) * 8 + 4)) << 32
+            attr := u64(bus9_get32(OAM + u32(k) * 8))
+            attr += u64(bus9_get32(OAM + u32(k) * 8 + 4)) << 32
 
             if(attr == 0) {
                 continue
@@ -260,7 +260,7 @@ ppu_draw_mode_2 :: proc() {
 ppu_draw_mode_3 :: proc() {
     for i :u32= 0; i < WIN_WIDTH; i += 1 {
         pixel := (u32(line_count) * WIN_WIDTH) + i
-        data := bus_get16(VRAM + pixel * 2)
+        data := bus9_get16(VRAM + pixel * 2)
         ppu_set_pixel(data, pixel)
     }
 }
@@ -272,9 +272,9 @@ ppu_draw_mode_4 :: proc() {
     }
     for i :u32= 0; i < WIN_WIDTH; i += 1 {
         pixel := (u32(line_count) * WIN_WIDTH) + i
-        palette := bus_get8(start + pixel)
+        palette := bus9_get8(start + pixel)
         if(palette != 0) {
-            data := bus_get16(BG_PALETTE + (u32(palette) * 2))
+            data := bus9_get16(BG_PALETTE + (u32(palette) * 2))
             ppu_set_pixel(data, pixel)
         }
     }
@@ -293,7 +293,7 @@ ppu_draw_mode_5 :: proc() {
         } else if(i >= 160) {
             continue
         } else {
-            data := bus_get16(start + (pixel * 2))
+            data := bus9_get16(start + (pixel * 2))
             ppu_set_pixel(data, pixel)
         }
     }
@@ -302,7 +302,7 @@ ppu_draw_mode_5 :: proc() {
 ppu_draw_mode_6 :: proc() {
     for i :u32= 0; i < WIN_WIDTH; i += 1 {
         pixel := (u32(line_count) * WIN_WIDTH) + i
-        data := bus_get16(0x06800000 + pixel * 2)   //TODO: Get proper address
+        data := bus9_get16(0x06800000 + pixel * 2)   //TODO: Get proper address
         ppu_set_pixel(data, pixel)
     }
 }
@@ -405,13 +405,13 @@ ppu_draw_tiles :: proc(bg_index: u8) {
         }
 
         if(x_coord >= 256 && y_coord >= 256) {
-            tile = bus_get16(map_data + u32((x_tile - 32) + ((y_tile - 32) * 32) + 3072) * 2)
+            tile = bus9_get16(map_data + u32((x_tile - 32) + ((y_tile - 32) * 32) + 3072) * 2)
         } else if(x_coord >= 256) {
-            tile = bus_get16(map_data + u32((x_tile - 32) + (y_tile * 32) + 1024) * 2)
+            tile = bus9_get16(map_data + u32((x_tile - 32) + (y_tile * 32) + 1024) * 2)
         } else if(y_coord >= 256) {
-            tile = bus_get16(map_data + u32(x_tile + ((y_tile - 32) * 32) + 2048) * 2)
+            tile = bus9_get16(map_data + u32(x_tile + ((y_tile - 32) * 32) + 2048) * 2)
         } else {
-            tile = bus_get16(map_data + u32(x_tile + (y_tile * 32)) * 2)
+            tile = bus9_get16(map_data + u32(x_tile + (y_tile * 32)) * 2)
         }
 
         if(utils_bit_get16(tile, 10)) { //Flip X
@@ -442,12 +442,12 @@ ppu_draw_tiles_aff :: proc(bg_index: u8) {
 ppu_draw_256_1 :: proc(tile: u16, tile_data: u32, y_in_tile: u16, x_in_tile: u32) -> u16 {
     tile_num := u32(tile & 0x03FF) * 64 //64 -> 8-bits per pixel and 8 rows per tile = 8 * 8 = 64
     data_addr := tile_data + tile_num + u32(y_in_tile * 8)
-    data := u64(bus_get32(data_addr))
-    data += u64(bus_get32(data_addr + 4)) << 32
+    data := u64(bus9_get32(data_addr))
+    data += u64(bus9_get32(data_addr + 4)) << 32
     palette_mask := 0x00000000000000FF << u64(x_in_tile * 8)
     palette_offset := u32(((data & u64(palette_mask)) >> u64(x_in_tile * 8)) * 2)
     if(palette_offset != 0) {
-        return bus_read16(BG_PALETTE + palette_offset)
+        return bus9_read16(BG_PALETTE + palette_offset)
     }
     return 0x8000
 }
@@ -455,13 +455,13 @@ ppu_draw_256_1 :: proc(tile: u16, tile_data: u32, y_in_tile: u16, x_in_tile: u32
 ppu_draw_16_16 :: proc(tile: u16, tile_data: u32, y_in_tile: u16, x_in_tile: u32) -> u16{
     tile_num := (tile & 0x03FF) * 32 //32 -> 4-bits per pixel and 8 rows per tile = 4 * 8 = 32
     data_addr := tile_data + u32(tile_num) + u32(y_in_tile) * 4
-    data := bus_get32(data_addr)
+    data := bus9_get32(data_addr)
     palette_mask := u32(0x0000000F << (x_in_tile * 4))
     palette_offset := ((data & palette_mask) >> (x_in_tile * 4)) * 2
     if(palette_offset != 0) {
         palette_num := ((tile & 0xF000) >> 12) * 32
         palette_offset += u32(palette_num)
-        return bus_read16(BG_PALETTE + palette_offset)
+        return bus9_read16(BG_PALETTE + palette_offset)
     }
     return 0x8000
 }
@@ -546,9 +546,9 @@ ppu_draw_sprites :: proc(sprites: [128]u64, length: u32, one_dimensional: bool) 
                 }
 
                 if(one_dimensional) {
-                    data = bus_get32(OVRAM + (sprite_index) + u32(x_tile) * 32 + u32((y_in_tile % 8) * 4) + (u32(y_in_tile / 8) * 32 * u32(tile_size_x)))
+                    data = bus9_get32(OVRAM + (sprite_index) + u32(x_tile) * 32 + u32((y_in_tile % 8) * 4) + (u32(y_in_tile / 8) * 32 * u32(tile_size_x)))
                 } else {
-                    data = bus_get32(OVRAM + (sprite_index) + u32(x_tile) * 32 + u32((y_in_tile % 8) * 4) + (u32(y_in_tile / 8) * 1024))
+                    data = bus9_get32(OVRAM + (sprite_index) + u32(x_tile) * 32 + u32((y_in_tile % 8) * 4) + (u32(y_in_tile / 8) * 1024))
                 }
                 for i :u32= 0; i < 8; i += 1 {
                     x_in_tile := i
@@ -584,7 +584,7 @@ ppu_draw_sprites :: proc(sprites: [128]u64, length: u32, one_dimensional: bool) 
                         if(pixel >= 57600) {
                             continue
                         }
-                        color := bus_read16(OB_PALETTE + palette_offset)
+                        color := bus9_read16(OB_PALETTE + palette_offset)
                         ppu_set_pixel(color, pixel)
                     }
                 }

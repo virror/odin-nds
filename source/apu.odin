@@ -462,12 +462,12 @@ apu_output :: proc() -> f32 {
     if (registers[NR52] & 0b00001000) {
         out += dac4_out;
     }*/
-    if(mem[IO_SOUNDCNT_H + 1] & 0x03) > 0 {
+    /*if(mem[IO_SOUNDCNT_H + 1] & 0x03) > 0 {
         out += f32(i16(direct_sound_a_out) + 128) / 128.0
     }
     if(mem[IO_SOUNDCNT_H + 1] & 0x30) > 0 {
         out += f32(i16(direct_sound_b_out) + 128) / 128.0
-    }
+    }*/
     return out - 1.0
 }
 
@@ -554,7 +554,7 @@ apu_read :: proc(addr: u32) -> u8 {
 }
 
 apu_write :: proc(addr: u32, value: u8) {
-    mem[addr] = value
+    //mem[addr] = value
     switch(addr) {
     case IO_SOUND1CNT_H: // -> length
         apu_load_length_counter_square1(value & 0x3f)
@@ -587,15 +587,15 @@ apu_write :: proc(addr: u32, value: u8) {
         }
     // Last byte of FIFO A
     case IO_FIFO_A_H + 1:
-        apu_load_fifo_a(mem[IO_FIFO_A_L])
+        /*apu_load_fifo_a(mem[IO_FIFO_A_L])
         apu_load_fifo_a(mem[IO_FIFO_A_L + 1])
         apu_load_fifo_a(mem[IO_FIFO_A_H])
-        apu_load_fifo_a(mem[IO_FIFO_A_H + 1])
+        apu_load_fifo_a(mem[IO_FIFO_A_H + 1])*/
     // Last byte of FIFO B
     case IO_FIFO_B_H + 1:
-        apu_load_fifo_b(mem[IO_FIFO_B_L])
+        /*apu_load_fifo_b(mem[IO_FIFO_B_L])
         apu_load_fifo_b(mem[IO_FIFO_B_L + 1])
         apu_load_fifo_b(mem[IO_FIFO_B_H])
-        apu_load_fifo_b(mem[IO_FIFO_B_H + 1])
+        apu_load_fifo_b(mem[IO_FIFO_B_H + 1])*/
     }
 }

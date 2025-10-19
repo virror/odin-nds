@@ -100,14 +100,14 @@ debug_draw :: proc() {
 }
 
 debug_draw_op_arm :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := cpu.arm9_get_instruction()
+    op := cpu.arm9_get_instruction(pc)
     name, suffix := debug_get_arm_names(op)
     line := fmt.caprintf("%s %8x %s %s", opText, op, name, suffix)
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
 debug_draw_op_thumb :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := u16(cpu.arm9_get_instruction())
+    op := u16(cpu.arm9_get_instruction(pc))
     name := debug_get_thumb_names(op)
     line := fmt.caprintf("%s %4x %s", opText, op, name)
     debug_text(line, posX, posY, {230, 230, 230, 230})

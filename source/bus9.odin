@@ -5,11 +5,24 @@ import "core:os"
 import "core:path/filepath"
 import "../../odin-libs/cpu"
 
+Rom_header :: struct {
+    rom_offset9: u32,
+    entry_address9: u32,
+    ram_address9: u32,
+    size9: u32,
+    rom_offset7: u32,
+    entry_address7: u32,
+    ram_address7: u32,
+    size7: u32,
+}
+
+@(private="file")
 mem: [0xFFFFFFF]u8
+@(private="file")
 bios: [0x1000]u8
-ram_write: bool
-start_offset: u32
-bus9: ^Bus
+@(private="file")
+bus9: Bus
+rom_header: Rom_header
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -24,6 +37,7 @@ bus9_init :: proc() {
     bus9.set8 = bus9_set8
     bus9.set16 = bus9_set16
     bus9.set32 = bus9_set32
+    bus9.irq_set = bus9_irq_set
 
     cpu.bus_read8 = bus9_read8
     cpu.bus_read16 = bus9_read16
@@ -39,7 +53,6 @@ bus9_init :: proc() {
 
 bus9_reset :: proc() {
     mem = {}
-    ram_write = false
     bus9_load_bios()
 }
 
@@ -54,11 +67,20 @@ bus9_load_bios :: proc() {
 bus9_load_rom :: proc(path: string) {
     file, err := os.open(path, os.O_RDONLY)
     assert(err == nil, "Failed to open rom")
-    _, err2 := os.read(file, mem[0x08000000:])
-    assert(err2 == nil, "Failed to read rom data")
+
+    //Read rom header
+    os.seek(file, 0x20, os.SEEK_SET)
+    tmp_mem: [32]u8
+    _, err = os.read(file, tmp_mem[:])
+    rom_header = (cast(^Rom_header)&tmp_mem[0])^
+
+    //Load rom data arm9
+    os.seek(file, cast(i64)(rom_header.rom_offset9), os.SEEK_SET)
+    os.read(file, mem[rom_header.ram_address9:rom_header.ram_address9 + rom_header.size9])
+
+    bus7_load_rom(file)
     file_name = filepath.short_stem(path)
     os.close(file)
-    start_offset = (cast(^u32)&mem[0x08000020])^
 }
 
 bus9_get8 :: proc(addr: u32) -> u8 {
@@ -88,7 +110,7 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         case 0x4000060..=0x40000AF:
             return apu_read(addr)
         case 0x40000B0..=0x40000FF:
-            return dma_read(addr, bus9)
+            return dma_read(addr, &bus9)
         case 0x4000100..=0x4000110:
             return tmr_read(addr)
 
@@ -147,7 +169,7 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         case 0x4000060..=0x40000AF:
             apu_write(addr, value)
         case 0x40000B0..=0x40000FF:
-            dma_write(addr, value, bus9)
+            dma_write(addr, value, &bus9)
         case 0x4000100..=0x4000110:
             tmr_write(addr, value)
 

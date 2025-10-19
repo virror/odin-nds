@@ -334,9 +334,9 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         resume_btn.disabled = true
         when !START_BIOS {
             cpu.arm7_init_no_bios()
-            cpu.arm7_reset(0x08000000 + start_offset)
+            cpu.arm7_reset(rom_header.entry_address7)
             cpu.arm9_init_no_bios()
-            cpu.arm9_reset(0x08000000 + start_offset)
+            cpu.arm9_reset(rom_header.entry_address9)
         } else {
             cpu.arm7_reset(0x00000000)
             cpu.arm9_reset(0xFFFF0000)
