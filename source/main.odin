@@ -13,7 +13,7 @@ WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
-DEBUG :: true
+DEBUG :: false
 START_BIOS :: false
 
 @(private="file")

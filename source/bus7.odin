@@ -146,7 +146,7 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         addr &= 0x3007FFF
         break
     case 0x4000000: //IO
-        fmt.printfln("%X %d",addr, value)
+        //fmt.printfln("%X %d",addr, value)
         switch(addr) {
         case 0x4000000..=0x400005F:
             ppu_write(addr, value)
