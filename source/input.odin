@@ -55,16 +55,12 @@ input_handle_irq :: proc() {
     }
 }
 
-input_read :: proc(addr: u32) -> u8 {
+input_read16 :: proc(addr: u32) -> u16 {
     switch(addr) {
     case IO_KEYINPUT:
-        return u8(key_state)
-    case IO_KEYINPUT + 1:
-        return u8(key_state >> 8)
+        return key_state
     case IO_KEYCNT:
-        return u8(key_cnt)
-    case IO_KEYCNT + 1:
-        return u8(key_cnt >> 8)
+        return key_cnt
     }
     return 0
 }

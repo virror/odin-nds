@@ -91,8 +91,8 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         break
     case 0x04000000: //IO
         switch(addr) {
-        case 0x4000000..=0x400005F:
-            return ppu_read(addr)
+        /*case 0x4000000..=0x400005F:
+            return ppu_read8(addr)
         case 0x4000060..=0x40000AF:
             return apu_read(addr)
         case 0x40000B0..=0x40000FF:
@@ -104,8 +104,8 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
             return input_read(addr)
 
         case 0x4000206..=0x4000207,
-                0x400020A..=0x40002FF,
-                0x4000302..=0x40007FF:
+             0x400020A..=0x40002FF,
+             0x4000302..=0x40007FF:
             return 0
         case 0x4000804..=0x4FFFFFF:
             if((addr & 1) > 0) {
@@ -114,7 +114,7 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
                 return 0xAD
             }
         case:
-            return mem[addr]
+            return mem[addr]*/
         }
         break
     case 0x05000000: //Palette RAM
@@ -147,7 +147,7 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         break
     case 0x4000000: //IO
         //fmt.printfln("%X %d",addr, value)
-        switch(addr) {
+        /*switch(addr) {
         case 0x4000000..=0x400005F:
             ppu_write(addr, value)
         case 0x4000060..=0x40000AF:
@@ -172,7 +172,7 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
             }
         case:
             mem[addr] = value
-        }
+        }*/
         return
     case 0x5000000: //Palette RAM
         addr &= 0x50004FF

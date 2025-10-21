@@ -1,5 +1,6 @@
 package main
 
+import "core:math"
 import "core:fmt"
 import "core:os"
 import "core:path/filepath"
@@ -105,26 +106,8 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         break
     case 0x04000000: //IO
         switch(addr) {
-        case 0x4000000..=0x400005F:
-            return ppu_read(addr)
-        case 0x4000060..=0x40000AF:
-            return apu_read(addr)
-        case 0x40000B0..=0x40000FF:
-            return dma_read(addr, &bus9)
-        case 0x4000100..=0x4000110:
-            return tmr_read(addr)
-
-        case 0x4000130..=0x4000132:
-            return input_read(addr)
-        case 0x4000280..=0x40002BF:
-            return bus_math_read(addr)
-        case 0x4000804..=0x4FFFFFF:
-            if((addr & 1) > 0) {
-                return 0xDE
-            } else {
-                return 0xAD
-            }
         case:
+            fmt.printfln("Addr read 8 %X", addr)
             return mem[addr]
         }
         break
@@ -161,29 +144,8 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
     case 0x4000000: //IO
         //fmt.printfln("%X %d",addr, value)
         switch(addr) {
-        case 0x4000000..=0x400005F:
-            ppu_write(addr, value)
-        case 0x4000060..=0x40000AF:
-            apu_write(addr, value)
-        case 0x40000B0..=0x40000FF:
-            dma_write(addr, value, &bus9)
-        case 0x4000100..=0x4000110:
-            tmr_write(addr, value)
-        case 0x4000130..=0x4000132:
-            input_write(addr, value)
-        case 0x4000280..=0x40002BF:
-            bus_math_write(addr, value)
-        case IO_IF, IO_IF + 1:
-            mem[addr] = (~value) & mem[addr]
-        case IO_IME:
-            mem[addr] = value
-        case IO_HALTCNT:
-            if(utils_bit_get16(u16(value), 7)) {
-                cpu.arm9_stop()
-            } else {
-                cpu.arm9_halt()
-            }
         case:
+            fmt.printfln("Addr write 8 %X", addr)
             mem[addr] = value
         }
         return
@@ -224,16 +186,41 @@ bus9_set16 :: proc(addr: u32, value: u16) {
 bus9_read16 :: proc(addr: u32) -> u16 {
     addr := addr
     addr &= 0xFFFFFFFE
-    value := u16(bus9_read8(addr, 2))
-    value |= (u16(bus9_read8(addr + 1, 2))) << 8
-    return value
+
+    if((addr & 0xF000000) == 0x4000000 ) {
+        switch(addr) {
+        case 0x4000004:
+            return ppu_read16(addr)
+        case 0x4000130:
+            return input_read16(addr)
+        case 0x40002B0:
+            return math_read16(addr)
+        case:
+            fmt.printfln("Addr read 16 %X", addr)
+        }
+        return 0
+    } else {
+        value := u16(bus9_read8(addr, 2))
+        value |= (u16(bus9_read8(addr + 1, 2))) << 8
+        return value
+    }
 }
 
 bus9_write16 :: proc(addr: u32, value: u16) {
     addr := addr
     addr &= 0xFFFFFFFE
-    bus9_write8(addr, u8(value & 0x00FF), 2)
-    bus9_write8(addr + 1, u8((value & 0xFF00) >> 8), 2)
+
+    if((addr & 0xF000000) == 0x4000000 ) {
+        switch(addr) {
+        case 0x40002B0:
+            math_write16(addr, value)
+        case:
+            fmt.printfln("Addr write 16 %X", addr)
+        }
+    } else {
+        bus9_write8(addr, u8(value & 0x00FF), 2)
+        bus9_write8(addr + 1, u8((value & 0xFF00) >> 8), 2)
+    }
 }
 
 bus9_get32 :: proc(addr: u32) -> u32 {
@@ -253,20 +240,43 @@ bus9_set32 :: proc(addr: u32, value: u32) {
 bus9_read32 :: proc(addr: u32) -> u32 {
     addr := addr
     addr &= 0xFFFFFFFC
-    value := u32(bus9_read8(addr, 4))
-    value |= (u32(bus9_read8(addr + 1, 4)) << 8)
-    value |= (u32(bus9_read8(addr + 2, 4)) << 16)
-    value |= (u32(bus9_read8(addr + 3, 4)) << 24)
-    return value
+
+    if((addr & 0xF000000) == 0x4000000 ) {
+        switch(addr) {
+        case 0x40002B4:
+            return math_read32(addr)
+        case:
+            fmt.printfln("Addr read 32 %X", addr)
+        }
+        return 0
+    } else {
+        value := u32(bus9_read8(addr, 4))
+        value |= (u32(bus9_read8(addr + 1, 4)) << 8)
+        value |= (u32(bus9_read8(addr + 2, 4)) << 16)
+        value |= (u32(bus9_read8(addr + 3, 4)) << 24)
+        return value
+    }
 }
 
 bus9_write32 :: proc(addr: u32, value: u32) {
     addr := addr
     addr &= 0xFFFFFFFC
-    bus9_write8(addr, u8(value & 0x000000FF))
-    bus9_write8(addr + 1, u8((value & 0x0000FF00) >> 8), 4)
-    bus9_write8(addr + 2, u8((value & 0x00FF0000) >> 16), 4)
-    bus9_write8(addr + 3, u8((value & 0xFF000000) >> 24), 4)
+
+    if((addr & 0xF000000) == 0x4000000 ) {
+        switch(addr) {
+        case 0x4000000:
+            ppu_write32(addr, value)
+        case 0x40002B8, 0x40002BC:
+            math_write32(addr, value)
+        case:
+            fmt.printfln("Addr write 32 %X", addr)
+        }
+    } else {
+        bus9_write8(addr, u8(value & 0x000000FF))
+        bus9_write8(addr + 1, u8((value & 0x0000FF00) >> 8), 4)
+        bus9_write8(addr + 2, u8((value & 0x00FF0000) >> 16), 4)
+        bus9_write8(addr + 3, u8((value & 0xFF000000) >> 24), 4)
+    }
 }
 
 bus9_irq_set :: proc(bit: u8) {

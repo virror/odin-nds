@@ -605,165 +605,27 @@ ppu_get_pixels :: proc() -> []u16 {
     return screen_buffer[:]
 }
 
-ppu_write :: proc(addr: u32, value: u8) {
+ppu_write32 :: proc(addr: u32, value: u32) {
     switch(addr) {
     case IO_DISPCNT:
-        dispcnt = u32(value)
-    case IO_DISPCNT + 1:
-        dispcnt |= u32(value) << 8
-    case IO_DISPCNT + 2:
-        dispcnt |= u32(value) << 16
-    case IO_DISPCNT + 3:
-        dispcnt |= u32(value) << 24
-    case IO_DISPSTAT:
-        dispstat = u16(value)
-    case IO_DISPSTAT + 1:
-        dispstat |= u16(value) << 8
-    case IO_BG0CNT:
-        bg0cnt = u16(value)
-    case IO_BG0CNT + 1:
-        bg0cnt |= u16(value) << 8
-    case IO_BG1CNT:
-        bg1cnt = u16(value)
-    case IO_BG1CNT + 1:
-        bg1cnt |= u16(value) << 8
-    case IO_BG2CNT:
-        bg2cnt = u16(value)
-    case IO_BG2CNT + 1:
-        bg2cnt |= u16(value) << 8
-    case IO_BG3CNT:
-        bg3cnt = u16(value)
-    case IO_BG3CNT + 1:
-        bg3cnt |= u16(value) << 8
-    case IO_BG0HOFS:
-        bg0hofs = u16(value)
-    case IO_BG0HOFS + 1:
-        bg0hofs |= u16(value) << 8
-    case IO_BG0VOFS:
-        bg0vofs = u16(value)
-    case IO_BG0VOFS + 1:
-        bg0vofs |= u16(value) << 8
-    case IO_BG1HOFS:
-        bg1hofs = u16(value)
-    case IO_BG1HOFS + 1:
-        bg1hofs |= u16(value) << 8
-    case IO_BG1VOFS:
-        bg1vofs = u16(value)
-    case IO_BG1VOFS + 1:
-        bg1vofs |= u16(value) << 8
-    case IO_BG2HOFS:
-        bg2hofs = u16(value)
-    case IO_BG2HOFS + 1:
-        bg2hofs |= u16(value) << 8
-    case IO_BG2VOFS:
-        bg2vofs = u16(value)
-    case IO_BG2VOFS + 1:
-        bg2vofs |= u16(value) << 8
-    case IO_BG3HOFS:
-        bg3hofs = u16(value)
-    case IO_BG3HOFS + 1:
-        bg3hofs |= u16(value) << 8
-    case IO_BG3VOFS:
-        bg3vofs = u16(value)
-    case IO_BG3VOFS + 1:
-        bg3vofs |= u16(value) << 8
-    case IO_WIN0H:
-        win0h = u16(value)
-    case IO_WIN0H + 1:
-        win0h |= u16(value) << 8
-    case IO_WIN1H:
-        win1h = u16(value)
-    case IO_WIN1H + 1:
-        win1h |= u16(value) << 8
-    case IO_WIN0V:
-        win0v = u16(value)
-    case IO_WIN0V + 1:
-        win0v |= u16(value) << 8
-    case IO_WIN1V:
-        win1v = u16(value)
-    case IO_WIN1V + 1:
-        win1v |= u16(value) << 8
-    case IO_WININ:
-        winin = u16(value)
-    case IO_WININ + 1:
-        winin |= u16(value) << 8
-    case IO_WINOUT:
-        winout = u16(value)
-    case IO_WINOUT + 1:
-        winout |= u16(value) << 8
-    case IO_MOSAIC:
-        mosaic = u16(value)
-    case IO_MOSAIC + 1:
-        mosaic |= u16(value) << 8
-    case IO_BLDCNT:
-        bldcnt = u16(value)
-    case IO_BLDCNT + 1:
-        bldcnt |= u16(value) << 8
-    case IO_BLDALPHA:
-        bldalpha = u16(value)
-    case IO_BLDALPHA + 1:
-        bldalpha |= u16(value) << 8
-    case IO_BLDY:
-        bldy = u16(value)
-    case IO_BLDY + 1:
-        bldy |= u16(value) << 8
+        dispcnt = value
     }
 }
 
-ppu_read :: proc(addr: u32) -> u8 {
+ppu_read16 :: proc(addr: u32) -> u16 {
     switch(addr) {
-    case IO_DISPCNT:
-        return u8(dispcnt)
-    case IO_DISPCNT + 1:
-        return u8(dispcnt >> 8)
-    case IO_DISPCNT + 2:
-        return u8(dispcnt >> 16)
-    case IO_DISPCNT + 3:
-        return u8(dispcnt >> 24)
     case IO_DISPSTAT:
-         return u8(dispstat)
-    case IO_DISPSTAT + 1:
-        return u8(dispstat >> 8)
-    case IO_VCOUNT:
-         return u8(vcount)
-    case IO_VCOUNT + 1:
-        return u8(vcount >> 8)
-    case IO_BG0CNT:
-         return u8(bg0cnt)
-    case IO_BG0CNT + 1:
-        return u8(bg0cnt >> 8) & 0xDF
-    case IO_BG1CNT:
-         return u8(bg1cnt)
-    case IO_BG1CNT + 1:
-        return u8(bg1cnt >> 8) & 0xDF
-    case IO_BG2CNT:
-         return u8(bg2cnt)
-    case IO_BG2CNT + 1:
-        return u8(bg2cnt >> 8)
-    case IO_BG3CNT:
-         return u8(bg3cnt)
-    case IO_BG3CNT + 1:
-        return u8(bg3cnt >> 8)
-    case IO_WININ:
-         return u8(winin) & 0x3F
-    case IO_WININ + 1:
-        return u8(winin >> 8) & 0x3F
-    case IO_WINOUT:
-         return u8(winout) & 0x3F
-    case IO_WINOUT + 1:
-        return u8(winout >> 8) & 0x3F
-    case IO_BLDCNT:
-         return u8(bldcnt)
-    case IO_BLDCNT + 1:
-        return u8(bldcnt >> 8) & 0x3F
-    case IO_BLDALPHA:
-         return u8(bldalpha) & 0x1F
-    case IO_BLDALPHA + 1:
-        return u8(bldalpha >> 8) & 0x1F
+        return dispstat
     }
-    if((addr & 1) > 0) {
-        return 0xDE
-    } else {
-        return 0xAD
+    return 0
+}
+
+ppu_write8 :: proc(addr: u32, value: u8) {
+    switch(addr) {
+    }
+}
+
+ppu_read8 :: proc(addr: u32) -> u8 {
+    switch(addr) {
     }
 }
