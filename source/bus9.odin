@@ -193,7 +193,7 @@ bus9_read16 :: proc(addr: u32) -> u16 {
             return ppu_read16(addr)
         case 0x4000130:
             return input_read16(addr)
-        case 0x40002B0:
+        case 0x40002B0, 0x4000280:
             return math_read16(addr)
         case:
             fmt.printfln("Addr read 16 %X", addr)
@@ -212,7 +212,7 @@ bus9_write16 :: proc(addr: u32, value: u16) {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
-        case 0x40002B0:
+        case 0x4000280, 0x40002B0:
             math_write16(addr, value)
         case:
             fmt.printfln("Addr write 16 %X", addr)
@@ -243,7 +243,8 @@ bus9_read32 :: proc(addr: u32) -> u32 {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
-        case 0x40002B4:
+        case 0x40002B4, 0x40002A0, 0x40002A4,
+             0x40002A8, 0x40002AC:
             return math_read32(addr)
         case:
             fmt.printfln("Addr read 32 %X", addr)
@@ -266,7 +267,8 @@ bus9_write32 :: proc(addr: u32, value: u32) {
         switch(addr) {
         case 0x4000000:
             ppu_write32(addr, value)
-        case 0x40002B8, 0x40002BC:
+        case 0x40002B8, 0x40002BC, 0x4000290,
+             0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
         case:
             fmt.printfln("Addr write 32 %X", addr)

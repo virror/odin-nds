@@ -628,4 +628,5 @@ ppu_write8 :: proc(addr: u32, value: u8) {
 ppu_read8 :: proc(addr: u32) -> u8 {
     switch(addr) {
     }
+    return 0
 }
