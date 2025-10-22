@@ -193,6 +193,9 @@ bus9_read16 :: proc(addr: u32) -> u16 {
             return ppu_read16(addr)
         case 0x4000130:
             return input_read16(addr)
+        case 0x4000180:
+            //TODO: Implement IPC
+            return 0
         case 0x40002B0, 0x4000280:
             return math_read16(addr)
         case:
@@ -212,6 +215,8 @@ bus9_write16 :: proc(addr: u32, value: u16) {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
+        case 0x4000180:
+            //TODO: Implement IPC
         case 0x4000280, 0x40002B0:
             math_write16(addr, value)
         case:
@@ -243,6 +248,12 @@ bus9_read32 :: proc(addr: u32) -> u32 {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
+        case IO_IME:
+            return bus9_get32(addr)
+        case IO_IE:
+            return bus9_get32(addr)
+        case IO_IF:
+            return bus9_get32(addr)
         case 0x40002B4, 0x40002A0, 0x40002A4,
              0x40002A8, 0x40002AC:
             return math_read32(addr)
@@ -267,6 +278,12 @@ bus9_write32 :: proc(addr: u32, value: u32) {
         switch(addr) {
         case 0x4000000:
             ppu_write32(addr, value)
+        case IO_IME:
+            bus9_set32(addr, value)
+        case IO_IE:
+            bus9_set32(addr, value)
+        case IO_IF:
+            bus9_set32(addr, ~value & bus9_get32(addr))
         case 0x40002B8, 0x40002BC, 0x4000290,
              0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
