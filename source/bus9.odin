@@ -4,7 +4,7 @@ import "core:math"
 import "core:fmt"
 import "core:os"
 import "core:path/filepath"
-import "../../odin-libs/cpu"
+import "../../odin-libs/cpu/arm9"
 
 Rom_header :: struct {
     rom_offset9: u32,
@@ -40,16 +40,16 @@ bus9_init :: proc() {
     bus9.set32 = bus9_set32
     bus9.irq_set = bus9_irq_set
 
-    cpu.bus_read8 = bus9_read8
-    cpu.bus_read16 = bus9_read16
-    cpu.bus_read32 = bus9_read32
-    cpu.bus_write8 = bus9_write8
-    cpu.bus_write16 = bus9_write16
-    cpu.bus_write32 = bus9_write32
-    cpu.bus_get16 = bus9_get16
-    cpu.bus_get32 = bus9_get32
-    cpu.cp15_read = cp15_read
-    cpu.cp15_write = cp15_write
+    arm9.bus_read8 = bus9_read8
+    arm9.bus_read16 = bus9_read16
+    arm9.bus_read32 = bus9_read32
+    arm9.bus_write8 = bus9_write8
+    arm9.bus_write16 = bus9_write16
+    arm9.bus_write32 = bus9_write32
+    arm9.bus_get16 = bus9_get16
+    arm9.bus_get32 = bus9_get32
+    arm9.cp15_read = cp15_read
+    arm9.cp15_write = cp15_write
 }
 
 bus9_reset :: proc() {
@@ -217,6 +217,8 @@ bus9_write16 :: proc(addr: u32, value: u16) {
         switch(addr) {
         case 0x4000180:
             //TODO: Implement IPC
+        case IO_IME:
+            bus9_set16(addr, value)
         case 0x4000280, 0x40002B0:
             math_write16(addr, value)
         case:

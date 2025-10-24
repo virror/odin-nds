@@ -2,12 +2,12 @@ package main
 
 import "core:math"
 import "core:fmt"
-import "core:path/filepath"
 import "base:runtime"
 import sdl "vendor:sdl3"
 import sdlttf "vendor:sdl3/ttf"
 import "../../odin-libs/emu"
-import "../../odin-libs/cpu"
+import "../../odin-libs/cpu/arm7"
+import "../../odin-libs/cpu/arm9"
 
 WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
@@ -124,7 +124,7 @@ main :: proc() {
         prev_time = time
 
         if((!pause || step) && !redraw && !buffer_is_full()) {
-            cycles := cpu.arm9_step()
+            cycles := arm9.step()
             cycles_since_last_sample += cycles
 
             /*tmr_step(&timer0, cycles)
@@ -333,13 +333,13 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         load_btn.disabled = true
         resume_btn.disabled = true
         when !START_BIOS {
-            cpu.arm7_init_no_bios()
-            cpu.arm7_reset(rom_header.entry_address7)
-            cpu.arm9_init_no_bios()
-            cpu.arm9_reset(rom_header.entry_address9)
+            arm7.init_no_bios()
+            arm7.reset(rom_header.entry_address7)
+            arm9.init_no_bios()
+            arm9.reset(rom_header.entry_address9)
         } else {
-            cpu.arm7_reset(0x00000000)
-            cpu.arm9_reset(0xFFFF0000)
+            arm7.reset(0x00000000)
+            arm9.reset(0xFFFF0000)
         }
         draw_debug()
     }

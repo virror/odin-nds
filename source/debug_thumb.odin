@@ -1,7 +1,7 @@
 package main
 
 import "core:fmt"
-import "../../odin-libs/cpu"
+import "../../odin-libs/cpu/arm9"
 
 shift :: proc(opcode: u16) -> cstring {
     op_name :cstring= "Undefined"
@@ -423,9 +423,9 @@ b_uncond :: proc(opcode: u16) -> cstring {
 bl :: proc(opcode: u16) -> cstring {
     op_name :cstring= "Undefined"
     /*imm := u32(opcode & 0x7FF) << 12
-    opcode2 := bus_read16(cpu.arm9_reg_get(cpu.Regs.PC) + 2)
+    opcode2 := bus_read16(arm9.reg_get(arm9.Regs.PC) + 2)
     imm2 := u32(opcode2 & 0x7FF) << 1
-    pc := i32(cpu.arm9_reg_get(cpu.Regs.PC))
+    pc := i32(arm9.reg_get(arm9.Regs.PC))
     offset := utils_sign_extend32(imm + imm2, 23)
     op_name = fmt.caprintf("BL %d", i32(offset) + pc)*/
     return op_name

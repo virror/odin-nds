@@ -3,7 +3,7 @@ package main
 import "core:fmt"
 import "core:os"
 import "core:path/filepath"
-import "../../odin-libs/cpu"
+import "../../odin-libs/cpu/arm7"
 
 Bus :: struct {
     read8: proc(addr: u32, width: u8) -> u8,
@@ -41,14 +41,14 @@ bus7_init :: proc() {
     bus7.set32 = bus7_set32
     bus7.irq_set = bus7_irq_set
 
-    cpu.bus_read8 = bus7_read8
-    cpu.bus_read16 = bus7_read16
-    cpu.bus_read32 = bus7_read32
-    cpu.bus_write8 = bus7_write8
-    cpu.bus_write16 = bus7_write16
-    cpu.bus_write32 = bus7_write32
-    cpu.bus_get16 = bus7_get16
-    cpu.bus_get32 = bus7_get32
+    arm7.bus_read8 = bus7_read8
+    arm7.bus_read16 = bus7_read16
+    arm7.bus_read32 = bus7_read32
+    arm7.bus_write8 = bus7_write8
+    arm7.bus_write16 = bus7_write16
+    arm7.bus_write32 = bus7_write32
+    arm7.bus_get16 = bus7_get16
+    arm7.bus_get32 = bus7_get32
 }
 
 bus7_reset :: proc() {
@@ -166,9 +166,9 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
             mem[addr] = value
         case IO_HALTCNT:
             if(utils_bit_get16(u16(value), 7)) {
-                cpu.arm9_stop()
+                arm7.stop()
             } else {
-                cpu.arm9_halt()
+                arm7.halt()
             }
         case:
             mem[addr] = value

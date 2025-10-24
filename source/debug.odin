@@ -3,7 +3,7 @@ package main
 import "core:fmt"
 import sdl "vendor:sdl3"
 import sdlttf "vendor:sdl3/ttf"
-import "../../odin-libs/cpu"
+import "../../odin-libs/cpu/arm9"
 when(DEBUG) {
 font: ^sdlttf.Font
 
@@ -12,42 +12,42 @@ debug_init :: proc() {
 }
 
 debug_draw :: proc() {
-    cpsr := cpu.arm9_get_cpsr()
-    debug_draw_reg("PC  ", cpu.arm9_reg_get(cpu.Regs.PC), 10, 10)
-    debug_draw_reg("R0  ", cpu.arm9_reg_get(cpu.Regs.R0), 180, 10)
-    debug_draw_reg("R1  ", cpu.arm9_reg_get(cpu.Regs.R1), 10, 35)
-    debug_draw_reg("R2  ", cpu.arm9_reg_get(cpu.Regs.R2), 180, 35)
-    debug_draw_reg("R3  ", cpu.arm9_reg_get(cpu.Regs.R3), 10, 60)
-    debug_draw_reg("R4  ", cpu.arm9_reg_get(cpu.Regs.R4), 180, 60)
-    debug_draw_reg("R5  ", cpu.arm9_reg_get(cpu.Regs.R5), 10, 85)
-    debug_draw_reg("R6  ", cpu.arm9_reg_get(cpu.Regs.R6), 180, 85)
-    debug_draw_reg("R7  ", cpu.arm9_reg_get(cpu.Regs.R7), 10, 110)
-    debug_draw_reg("R8  ", cpu.arm9_reg_get(cpu.Regs.R8), 180, 110)
-    debug_draw_reg("R9  ", cpu.arm9_reg_get(cpu.Regs.R9), 10, 135)
-    debug_draw_reg("R10 ", cpu.arm9_reg_get(cpu.Regs.R10), 180, 135)
-    debug_draw_reg("R11 ", cpu.arm9_reg_get(cpu.Regs.R11), 10, 160)
-    debug_draw_reg("R12 ", cpu.arm9_reg_get(cpu.Regs.R12), 180, 160)
+    cpsr := arm9.get_cpsr()
+    debug_draw_reg("PC  ", arm9.reg_get(arm9.Regs.PC), 10, 10)
+    debug_draw_reg("R0  ", arm9.reg_get(arm9.Regs.R0), 180, 10)
+    debug_draw_reg("R1  ", arm9.reg_get(arm9.Regs.R1), 10, 35)
+    debug_draw_reg("R2  ", arm9.reg_get(arm9.Regs.R2), 180, 35)
+    debug_draw_reg("R3  ", arm9.reg_get(arm9.Regs.R3), 10, 60)
+    debug_draw_reg("R4  ", arm9.reg_get(arm9.Regs.R4), 180, 60)
+    debug_draw_reg("R5  ", arm9.reg_get(arm9.Regs.R5), 10, 85)
+    debug_draw_reg("R6  ", arm9.reg_get(arm9.Regs.R6), 180, 85)
+    debug_draw_reg("R7  ", arm9.reg_get(arm9.Regs.R7), 10, 110)
+    debug_draw_reg("R8  ", arm9.reg_get(arm9.Regs.R8), 180, 110)
+    debug_draw_reg("R9  ", arm9.reg_get(arm9.Regs.R9), 10, 135)
+    debug_draw_reg("R10 ", arm9.reg_get(arm9.Regs.R10), 180, 135)
+    debug_draw_reg("R11 ", arm9.reg_get(arm9.Regs.R11), 10, 160)
+    debug_draw_reg("R12 ", arm9.reg_get(arm9.Regs.R12), 180, 160)
 
-    debug_draw_reg2("SP(R13)  ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_USER), 10, 210, cpu.Modes.M_USER)
-    debug_draw_reg2("SP_fiq   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_FIQ), 240, 210, cpu.Modes.M_FIQ)
-    debug_draw_reg2("SP_svc   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_SUPERVISOR), 10, 235, cpu.Modes.M_SUPERVISOR)
-    debug_draw_reg2("SP_abt   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_ABORT), 240, 235, cpu.Modes.M_ABORT)
-    debug_draw_reg2("SP_irq   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_IRQ), 10, 260, cpu.Modes.M_IRQ)
-    debug_draw_reg2("SP_und   ", cpu.arm9_reg_raw(cpu.Regs.SP, cpu.Modes.M_UNDEFINED), 240, 260, cpu.Modes.M_UNDEFINED)
+    debug_draw_reg2("SP(R13)  ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_USER), 10, 210, arm9.Modes.M_USER)
+    debug_draw_reg2("SP_fiq   ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_FIQ), 240, 210, arm9.Modes.M_FIQ)
+    debug_draw_reg2("SP_svc   ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_SUPERVISOR), 10, 235, arm9.Modes.M_SUPERVISOR)
+    debug_draw_reg2("SP_abt   ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_ABORT), 240, 235, arm9.Modes.M_ABORT)
+    debug_draw_reg2("SP_irq   ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_IRQ), 10, 260, arm9.Modes.M_IRQ)
+    debug_draw_reg2("SP_und   ", arm9.reg_raw(arm9.Regs.SP, arm9.Modes.M_UNDEFINED), 240, 260, arm9.Modes.M_UNDEFINED)
 
-    debug_draw_reg2("LR(R14)  ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_USER), 10, 285, cpu.Modes.M_USER)
-    debug_draw_reg2("LR_fiq   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_FIQ), 240, 285, cpu.Modes.M_FIQ)
-    debug_draw_reg2("LR_svc   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_SUPERVISOR), 10, 310, cpu.Modes.M_SUPERVISOR)
-    debug_draw_reg2("LR_abt   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_ABORT), 240, 310, cpu.Modes.M_ABORT)
-    debug_draw_reg2("LR_irq   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_IRQ), 10, 335, cpu.Modes.M_IRQ)
-    debug_draw_reg2("LR_und   ", cpu.arm9_reg_raw(cpu.Regs.LR, cpu.Modes.M_UNDEFINED), 240, 335, cpu.Modes.M_UNDEFINED)
+    debug_draw_reg2("LR(R14)  ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_USER), 10, 285, arm9.Modes.M_USER)
+    debug_draw_reg2("LR_fiq   ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_FIQ), 240, 285, arm9.Modes.M_FIQ)
+    debug_draw_reg2("LR_svc   ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_SUPERVISOR), 10, 310, arm9.Modes.M_SUPERVISOR)
+    debug_draw_reg2("LR_abt   ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_ABORT), 240, 310, arm9.Modes.M_ABORT)
+    debug_draw_reg2("LR_irq   ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_IRQ), 10, 335, arm9.Modes.M_IRQ)
+    debug_draw_reg2("LR_und   ", arm9.reg_raw(arm9.Regs.LR, arm9.Modes.M_UNDEFINED), 240, 335, arm9.Modes.M_UNDEFINED)
 
     debug_draw_reg("CPSR     ", u32(cpsr), 10, 360)
-    debug_draw_reg2("SPSR_fiq ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_FIQ), 240, 360, cpu.Modes.M_FIQ)
-    debug_draw_reg2("SPSR_svc ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_SUPERVISOR), 10, 385, cpu.Modes.M_SUPERVISOR)
-    debug_draw_reg2("SPSR_abt ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_ABORT), 240, 385, cpu.Modes.M_ABORT)
-    debug_draw_reg2("SPSR_irq ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_IRQ), 10, 410, cpu.Modes.M_IRQ)
-    debug_draw_reg2("SPSR_und ", cpu.arm9_reg_raw(cpu.Regs.SPSR, cpu.Modes.M_UNDEFINED), 240, 410, cpu.Modes.M_UNDEFINED)
+    debug_draw_reg2("SPSR_fiq ", arm9.reg_raw(arm9.Regs.SPSR, arm9.Modes.M_FIQ), 240, 360, arm9.Modes.M_FIQ)
+    debug_draw_reg2("SPSR_svc ", arm9.reg_raw(arm9.Regs.SPSR, arm9.Modes.M_SUPERVISOR), 10, 385, arm9.Modes.M_SUPERVISOR)
+    debug_draw_reg2("SPSR_abt ", arm9.reg_raw(arm9.Regs.SPSR, arm9.Modes.M_ABORT), 240, 385, arm9.Modes.M_ABORT)
+    debug_draw_reg2("SPSR_irq ", arm9.reg_raw(arm9.Regs.SPSR, arm9.Modes.M_IRQ), 10, 410, arm9.Modes.M_IRQ)
+    debug_draw_reg2("SPSR_und ", arm9.reg_raw(arm9.Regs.SPSR, arm9.Modes.M_UNDEFINED), 240, 410, arm9.Modes.M_UNDEFINED)
 
     debug_draw_flag("N    ", 31, 350, 10)
     debug_draw_flag("Z    ", 30, 350, 35)
@@ -63,25 +63,25 @@ debug_draw :: proc() {
     mode := cpsr.Mode
     mode_name: cstring
     switch(mode) {
-    case cpu.Modes.M_USER:
+    case arm9.Modes.M_USER:
         mode_name = "User"
         break
-    case cpu.Modes.M_FIQ:
+    case arm9.Modes.M_FIQ:
         mode_name = "FIQ"
         break
-    case cpu.Modes.M_IRQ:
+    case arm9.Modes.M_IRQ:
         mode_name = "IRQ"
         break
-    case cpu.Modes.M_SUPERVISOR:
+    case arm9.Modes.M_SUPERVISOR:
         mode_name = "Supervisor"
         break
-    case cpu.Modes.M_ABORT:
+    case arm9.Modes.M_ABORT:
         mode_name = "Abort"
         break
-    case cpu.Modes.M_UNDEFINED:
+    case arm9.Modes.M_UNDEFINED:
         mode_name = "Undefined"
         break
-    case cpu.Modes.M_SYSTEM:
+    case arm9.Modes.M_SYSTEM:
         mode_name = "System"
         break
     case:
@@ -100,14 +100,14 @@ debug_draw :: proc() {
 }
 
 debug_draw_op_arm :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := cpu.arm9_get_instruction(pc)
+    op := arm9.get_instruction(pc)
     name, suffix := debug_get_arm_names(op)
     line := fmt.caprintf("%s %8x %s %s", opText, op, name, suffix)
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
 debug_draw_op_thumb :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := u16(cpu.arm9_get_instruction(pc))
+    op := u16(arm9.get_instruction(pc))
     name := debug_get_thumb_names(op)
     line := fmt.caprintf("%s %4x %s", opText, op, name)
     debug_text(line, posX, posY, {230, 230, 230, 230})
@@ -118,10 +118,10 @@ debug_draw_reg :: proc(regText: cstring, reg: u32, posX: f32, posY: f32) {
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
 
-debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: cpu.Modes) {
-    current_mode := cpu.arm9_get_cpsr().Mode
-    if(current_mode == cpu.Modes.M_USER) {
-        current_mode = cpu.Modes.M_SYSTEM
+debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: arm9.Modes) {
+    current_mode := arm9.get_cpsr().Mode
+    if(current_mode == arm9.Modes.M_USER) {
+        current_mode = arm9.Modes.M_SYSTEM
     }
     line := fmt.caprintf("%s %8x", regText, reg)
     if(current_mode == mode) {
@@ -132,7 +132,7 @@ debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: 
 }
 
 debug_draw_flag :: proc(flagText: cstring, flag: u8, posX: f32, posY: f32) {
-    cpsr := cpu.arm9_get_cpsr()
+    cpsr := arm9.get_cpsr()
     line := fmt.caprintf("%s %s", flagText, utils_bit_get32(u32(cpsr), flag)?"true":"false")
     debug_text(line, posX, posY, {230, 230, 230, 230})
 }
