@@ -13,7 +13,7 @@ WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
-DEBUG :: false
+DEBUG :: true
 START_BIOS :: false
 
 @(private="file")
@@ -124,7 +124,9 @@ main :: proc() {
         prev_time = time
 
         if((!pause || step) && !redraw && !buffer_is_full()) {
-            cycles := arm9.step()
+            //TODO: Run arm9 for 40 cycles-ish?
+            cycles := arm7.step()
+            //TODO: Run arm7 here for half that?
             cycles_since_last_sample += cycles
 
             /*tmr_step(&timer0, cycles)

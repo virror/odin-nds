@@ -107,7 +107,7 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
     case 0x04000000: //IO
         switch(addr) {
         case:
-            fmt.printfln("Addr read 8 %X", addr)
+            fmt.printfln("9 Addr read 8 %X", addr)
             return mem[addr]
         }
         break
@@ -145,7 +145,7 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         //fmt.printfln("%X %d",addr, value)
         switch(addr) {
         case:
-            fmt.printfln("Addr write 8 %X", addr)
+            fmt.printfln("9 Addr write 8 %X", addr)
             mem[addr] = value
         }
         return
@@ -199,7 +199,7 @@ bus9_read16 :: proc(addr: u32) -> u16 {
         case 0x40002B0, 0x4000280:
             return math_read16(addr)
         case:
-            fmt.printfln("Addr read 16 %X", addr)
+            fmt.printfln("9 Addr read 16 %X", addr)
         }
         return 0
     } else {
@@ -222,7 +222,7 @@ bus9_write16 :: proc(addr: u32, value: u16) {
         case 0x4000280, 0x40002B0:
             math_write16(addr, value)
         case:
-            fmt.printfln("Addr write 16 %X", addr)
+            fmt.printfln("9 Addr write 16 %X", addr)
         }
     } else {
         bus9_write8(addr, u8(value & 0x00FF), 2)
@@ -260,7 +260,7 @@ bus9_read32 :: proc(addr: u32) -> u32 {
              0x40002A8, 0x40002AC:
             return math_read32(addr)
         case:
-            fmt.printfln("Addr read 32 %X", addr)
+            fmt.printfln("9 Addr read 32 %X", addr)
         }
         return 0
     } else {
@@ -290,7 +290,7 @@ bus9_write32 :: proc(addr: u32, value: u32) {
              0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
         case:
-            fmt.printfln("Addr write 32 %X", addr)
+            fmt.printfln("9 Addr write 32 %X", addr)
         }
     } else {
         bus9_write8(addr, u8(value & 0x000000FF))
