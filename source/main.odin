@@ -125,7 +125,9 @@ main :: proc() {
 
         if((!pause || step) && !redraw && !buffer_is_full()) {
             //TODO: Run arm9 for 40 cycles-ish?
-            cycles := arm7.step()
+            cycles := arm9.step()
+            cycles += arm9.step()
+            arm7.step()
             //TODO: Run arm7 here for half that?
             cycles_since_last_sample += cycles
 
