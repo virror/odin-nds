@@ -2,7 +2,7 @@ package main
 
 import "core:fmt"
 import "core:os"
-import "core:path/filepath"
+import "core:container/queue"
 import "../../odin-libs/cpu/arm7"
 
 Bus :: struct {
@@ -25,6 +25,13 @@ Bus :: struct {
 mem: [0xFFFFFFF]u8
 @(private="file")
 bus7: Bus
+@(private="file")
+ipc_data: u16
+ipcfifo7: queue.Queue(u32)
+@(private="file")
+ipcfifocnt: Ipcfifocnt
+@(private="file")
+last_fifo: u32
 
 bus7_init :: proc() {
     bus7.read8 = bus7_read8
@@ -174,11 +181,17 @@ bus7_read16 :: proc(addr: u32) -> u16 {
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
         case 0x4000180:
-            return 0
-            //TODO: Implement IPC
+            return ipc_data
         case 0x4000184:
-            return 0xFF
-            //TODO: Implement IPC FIFO
+            data := u16((queue.len(ipcfifo7) == 0)?1:0)
+            data |= u16((queue.space(ipcfifo7) == 0)?1:0) << 1
+            data |= (ipcfifocnt.send_irq?1:0) << 2
+            data |= u16((queue.len(ipcfifo9) == 0)?1:0) << 8
+            data |= u16((queue.space(ipcfifo9) == 0)?1:0) << 9
+            data |= (ipcfifocnt.send_irq?1:0) << 10
+            data |= (ipcfifocnt.error?1:0) << 14
+            data |= (ipcfifocnt.enable?1:0) << 15
+            return data
         case:
             fmt.printfln("7 Addr read 16 %X", addr)
         }
@@ -197,7 +210,17 @@ bus7_write16 :: proc(addr: u32, value: u16) {
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
         case 0x4000180:
-            //TODO: Implement IPC
+            bus9_ipc_write((value >> 8) & 0x0F, bool((value >> 13) & 1))
+        case 0x4000184:
+            ipcfifocnt.send_irq = bool((value >> 2) & 1)
+            if(bool((value >> 3) & 1)) {   //Clear
+                queue.clear(&ipcfifo7)
+            }
+            ipcfifocnt.rec_irq = bool((value >> 10) & 1)
+            if(bool((value >> 14) & 1)) {   //Error
+                ipcfifocnt.error = false
+            }
+            ipcfifocnt.enable = bool((value >> 15) & 1)
         case:
             fmt.printfln("7 Addr write 16 %X", addr)
         }
@@ -223,12 +246,29 @@ bus7_read32 :: proc(addr: u32) -> u32 {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
+        case 0x4100000:
+            if(ipcfifocnt.enable) {
+                if(queue.len(ipcfifo9) > 0) {
+                    last_fifo = queue.dequeue(&ipcfifo9)
+                    return last_fifo
+                } else {
+                    ipcfifocnt.error = true
+                    return last_fifo
+                }
+            } else {
+                if(queue.len(ipcfifo9) > 0) {
+                    last_fifo = queue.front_ptr(&ipcfifo9)^
+                    return last_fifo
+                } else {
+                    return 0
+                }
+            }
         case IO_IME:
-            return bus9_get32(addr)
+            return bus7_get32(addr)
         case IO_IE:
-            return bus9_get32(addr)
+            return bus7_get32(addr)
         case IO_IF:
-            return bus9_get32(addr)
+            return bus7_get32(addr)
         case 0x40002B4, 0x40002A0, 0x40002A4,
              0x40002A8, 0x40002AC:
             return math_read32(addr)
@@ -253,12 +293,16 @@ bus7_write32 :: proc(addr: u32, value: u32) {
         switch(addr) {
         case 0x4000000:
             ppu_write32(addr, value)
+        case 0x4000188:
+            if(ipcfifocnt.enable) {
+                queue.enqueue(&ipcfifo7, value)
+            }
         case IO_IME:
-            bus9_set32(addr, value)
+            bus7_set32(addr, value)
         case IO_IE:
-            bus9_set32(addr, value)
+            bus7_set32(addr, value)
         case IO_IF:
-            bus9_set32(addr, ~value & bus9_get32(addr))
+            bus7_set32(addr, ~value & bus7_get32(addr))
         case 0x40002B8, 0x40002BC, 0x4000290,
              0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
@@ -274,6 +318,13 @@ bus7_write32 :: proc(addr: u32, value: u32) {
 }
 
 bus7_irq_set :: proc(bit: u8) {
-    iflag := bus7_get16(IO_IF)
-    bus7_set16(IO_IF, utils_bit_set16(iflag, bit))
+    iflag := bus7_get32(IO_IF)
+    bus7_set32(IO_IF, utils_bit_set32(iflag, bit))
+}
+
+bus7_ipc_write :: proc(value: u16, irq: bool) {
+    ipc_data = value
+    if(irq) {
+        bus7_irq_set(16)
+    }
 }

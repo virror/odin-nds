@@ -13,7 +13,7 @@ WIN_WIDTH :: 256
 WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
-DEBUG :: true
+DEBUG :: false
 START_BIOS :: false
 
 @(private="file")
@@ -151,11 +151,6 @@ main :: proc() {
                 draw_debug()
                 step = false
             }
-
-            /*if(PC == 0xFFFF01A0) {
-                pause_emu(true)
-                draw_debug()
-            }*/
         }
 
         if(accumulated_time > step_length) {

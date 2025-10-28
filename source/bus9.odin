@@ -1,9 +1,9 @@
 package main
 
-import "core:math"
 import "core:fmt"
 import "core:os"
 import "core:path/filepath"
+import "core:container/queue"
 import "../../odin-libs/cpu/arm9"
 
 Rom_header :: struct {
@@ -17,6 +17,13 @@ Rom_header :: struct {
     size7: u32,
 }
 
+Ipcfifocnt :: struct {
+    send_irq: bool,
+    rec_irq: bool,
+    error: bool,
+    enable: bool,
+}
+
 @(private="file")
 mem: [0xFFFFFFF]u8
 @(private="file")
@@ -24,6 +31,13 @@ bios: [0x1000]u8
 @(private="file")
 bus9: Bus
 rom_header: Rom_header
+@(private="file")
+ipc_data: u16
+ipcfifo9: queue.Queue(u32)
+@(private="file")
+ipcfifocnt: Ipcfifocnt
+@(private="file")
+last_fifo: u32
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -50,6 +64,8 @@ bus9_init :: proc() {
     arm9.bus_get32 = bus9_get32
     arm9.cp15_read = cp15_read
     arm9.cp15_write = cp15_write
+
+	queue.init(&ipcfifo9, 16)
 }
 
 bus9_reset :: proc() {
@@ -194,8 +210,17 @@ bus9_read16 :: proc(addr: u32) -> u16 {
         case 0x4000130:
             return input_read16(addr)
         case 0x4000180:
-            //TODO: Implement IPC
-            return 0
+            return ipc_data
+        case 0x4000184:
+            data := u16((queue.len(ipcfifo9) == 0)?1:0)
+            data |= u16((queue.space(ipcfifo9) == 0)?1:0) << 1
+            data |= (ipcfifocnt.send_irq?1:0) << 2
+            data |= u16((queue.len(ipcfifo7) == 0)?1:0) << 8
+            data |= u16((queue.space(ipcfifo7) == 0)?1:0) << 9
+            data |= (ipcfifocnt.send_irq?1:0) << 10
+            data |= (ipcfifocnt.error?1:0) << 14
+            data |= (ipcfifocnt.enable?1:0) << 15
+            return data
         case 0x40002B0, 0x4000280:
             return math_read16(addr)
         case:
@@ -216,7 +241,17 @@ bus9_write16 :: proc(addr: u32, value: u16) {
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
         case 0x4000180:
-            //TODO: Implement IPC
+            bus7_ipc_write((value >> 8) & 0x0F, bool((value >> 13) & 1))
+        case 0x4000184:
+            ipcfifocnt.send_irq = bool((value >> 2) & 1)
+            if(bool((value >> 3) & 1)) {   //Clear
+                queue.clear(&ipcfifo9)
+            }
+            ipcfifocnt.rec_irq = bool((value >> 10) & 1)
+            if(bool((value >> 14) & 1)) {   //Error
+                ipcfifocnt.error = false
+            }
+            ipcfifocnt.enable = bool((value >> 15) & 1)
         case IO_IME:
             bus9_set16(addr, value)
         case 0x4000280, 0x40002B0:
@@ -250,6 +285,23 @@ bus9_read32 :: proc(addr: u32) -> u32 {
 
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
+        case 0x4100000:
+            if(ipcfifocnt.enable) {
+                if(queue.len(ipcfifo7) > 0) {
+                    last_fifo = queue.dequeue(&ipcfifo7)
+                    return last_fifo
+                } else {
+                    ipcfifocnt.error = true
+                    return last_fifo
+                }
+            } else {
+                if(queue.len(ipcfifo7) > 0) {
+                    last_fifo = queue.front_ptr(&ipcfifo7)^
+                    return last_fifo
+                } else {
+                    return 0
+                }
+            }
         case IO_IME:
             return bus9_get32(addr)
         case IO_IE:
@@ -280,6 +332,10 @@ bus9_write32 :: proc(addr: u32, value: u32) {
         switch(addr) {
         case 0x4000000:
             ppu_write32(addr, value)
+        case 0x4000188:
+            if(ipcfifocnt.enable) {
+                queue.enqueue(&ipcfifo9, value)
+            }
         case IO_IME:
             bus9_set32(addr, value)
         case IO_IE:
@@ -303,4 +359,11 @@ bus9_write32 :: proc(addr: u32, value: u32) {
 bus9_irq_set :: proc(bit: u8) {
     iflag := bus9_get32(IO_IF)
     bus9_set32(IO_IF, utils_bit_set32(iflag, bit))
+}
+
+bus9_ipc_write :: proc(value: u16, irq: bool) {
+    ipc_data = value
+    if(irq) {
+        bus9_irq_set(16)
+    }
 }
