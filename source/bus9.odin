@@ -38,6 +38,7 @@ ipcfifo9: queue.Queue(u32)
 ipcfifocnt: Ipcfifocnt
 @(private="file")
 last_fifo: u32
+wramcnt: u8
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -118,10 +119,25 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         addr &= 0x32FFFFF
         break
     case 0x03000000: //WRAM
-        addr &= 0x3007FFF
+        switch(wramcnt & 3) {
+        case 0:
+            return mem[addr & 0x3007FFF]
+        case 1:
+            if(addr < 0x3004000) {
+                return mem[(addr + 0x4000)]
+            } else {
+                return mem[addr & 0x3007FFF]
+            }
+        case 2:
+            return mem[addr & 0x3003FFF]
+        case 3:
+            return 0
+            }
         break
     case 0x04000000: //IO
         switch(addr) {
+        case 0x4000247:
+            return wramcnt
         case:
             fmt.printfln("9 Addr read 8 %X", addr)
             return mem[addr]
@@ -155,11 +171,26 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         addr &= 0x32FFFFF
         break
     case 0x3000000: //WRAM
-        addr &= 0x3007FFF
+        switch(wramcnt & 3) {
+        case 0:
+            mem[addr & 0x3007FFF] = value
+        case 1:
+            if(addr < 0x3004000) {
+                mem[(addr + 0x4000)] = value
+            } else {
+                mem[addr & 0x3007FFF] = value
+            }
+        case 2:
+            mem[addr & 0x3003FFF] = value
+        case 3:
+            return
+            }
         break
     case 0x4000000: //IO
         //fmt.printfln("%X %d",addr, value)
         switch(addr) {
+        case 0x4000247:
+            wramcnt = value
         case:
             fmt.printfln("9 Addr write 8 %X", addr)
             mem[addr] = value
@@ -366,4 +397,12 @@ bus9_ipc_write :: proc(value: u16, irq: bool) {
     if(irq) {
         bus9_irq_set(16)
     }
+}
+
+bus9_read_wram :: proc(addr: u32) -> u8 {
+    return mem[addr]
+}
+
+bus9_write_wram :: proc(addr: u32, value: u8) {
+    mem[addr] = value
 }

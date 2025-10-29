@@ -94,10 +94,30 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         addr &= 0x32FFFFF
         break
     case 0x03000000: //WRAM
-        //addr &= 0x3007FFF
+        if(addr >= 0x3800000) {
+            return mem[addr & 0x380FFFF]
+        } else {
+            switch(wramcnt & 3) {
+            case 0:
+                addr &= 0x300FFFF
+                return mem[addr + 0x800000]
+            case 1:
+                return bus9_read_wram(addr & 0x3003FFF)
+            case 2:
+                if(addr < 0x3004000) {
+                return bus9_read_wram((addr + 0x4000))
+            } else {
+                return bus9_read_wram(addr & 0x3007FFF)
+            }
+            case 3:
+                return bus9_read_wram(addr & 0x3007FFF)
+            }
+        }
         break
     case 0x04000000: //IO
         switch(addr) {
+        case 0x4000241:
+            return wramcnt
         case:
             fmt.printfln("7 Addr read 8 %X", addr)
             return mem[addr]
@@ -129,7 +149,25 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         addr &= 0x32FFFFF
         break
     case 0x3000000: //WRAM
-        //addr &= 0x3007FFF
+        if(addr >= 0x3800000) {
+            mem[addr & 0x380FFFF] = value
+        } else {
+            switch(wramcnt & 3) {
+            case 0:
+                addr &= 0x300FFFF
+                mem[addr + 0x800000] = value
+            case 1:
+                bus9_write_wram(addr & 0x3003FFF, value)
+            case 2:
+                if(addr < 0x3004000) {
+                bus9_write_wram((addr + 0x4000), value)
+            } else {
+                bus9_write_wram(addr & 0x3007FFF, value)
+            }
+            case 3:
+                bus9_write_wram(addr & 0x3007FFF, value)
+            }
+        }
         break
     case 0x4000000: //IO
         //fmt.printfln("%X %d",addr, value)
