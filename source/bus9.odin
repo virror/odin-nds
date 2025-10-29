@@ -39,6 +39,10 @@ ipcfifocnt: Ipcfifocnt
 @(private="file")
 last_fifo: u32
 wramcnt: u8
+@(private="file")
+itcm: [0x8000]u8
+@(private="file")
+dtcm: [0x4000]u8
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -111,12 +115,19 @@ bus9_set8 :: proc(addr: u32, value: u8) {
 
 bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
     addr := addr
+
+    if(addr < (512 << itcmsize.vsize) && cp15cntreg.itcm_enable && !cp15cntreg.itcm_load) {
+        return itcm[addr & 0x7FFF]
+    } else if(bus9_dtcm_inside(addr) && cp15cntreg.dtcm_enable && !cp15cntreg.dtcm_load) {
+        return dtcm[addr & 0x3FFF]
+    }
+
     addr_id := addr & 0xFF000000
     switch(addr_id) {
-    case 0x00000000: //Instruction TCM
+    case 0x00000000: //TCM
         break
-    case 0x02000000: //WRAM
-        addr &= 0x32FFFFF
+    case 0x02000000: //Main RAM
+        addr &= 0x23FFFFF
         break
     case 0x03000000: //WRAM
         switch(wramcnt & 3) {
@@ -163,12 +174,21 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
 
 bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
     addr := addr
+
+    if(addr < (512 << itcmsize.vsize) && cp15cntreg.itcm_enable) {
+        itcm[addr & 0x7FFF] = value
+        return
+    } else if(bus9_dtcm_inside(addr) && cp15cntreg.dtcm_enable) {
+        dtcm[addr & 0x3FFF] = value
+        return
+    }
+
     addr_id := addr & 0xF000000
     switch(addr_id) {
-    case 0x0000000: //BIOS
-        return //Read only
-    case 0x2000000: //WRAM
-        addr &= 0x32FFFFF
+    case 0x0000000: //TCM
+        break
+    case 0x2000000: //Main RAM
+        addr &= 0x23FFFFF
         break
     case 0x3000000: //WRAM
         switch(wramcnt & 3) {
@@ -223,6 +243,9 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
 }
 
 bus9_get16 :: proc(addr: u32) -> u16 {
+    if((addr & 0xF000000) == 0x200000 ) {
+        fmt.println("get16 9 from main ram")
+    }
     return (cast(^u16)&mem[addr])^
 }
 
@@ -299,6 +322,9 @@ bus9_write16 :: proc(addr: u32, value: u16) {
 bus9_get32 :: proc(addr: u32) -> u32 {
     addr := addr
     addr &= 0xFFFFFFFC
+    if((addr & 0xF000000) == 0x200000 ) {
+        fmt.println("get32 9 from main ram")
+    }
     if(addr >= 0xFFFF0000) {
         return (cast(^u32)&bios[addr - 0xFFFF0000])^
     } else {
@@ -405,4 +431,17 @@ bus9_read_wram :: proc(addr: u32) -> u8 {
 
 bus9_write_wram :: proc(addr: u32, value: u8) {
     mem[addr] = value
+}
+
+bus9_read_mram :: proc(addr: u32) -> u8 {
+    return mem[addr]
+}
+
+bus9_write_mram :: proc(addr: u32, value: u8) {
+    mem[addr] = value
+}
+
+bus9_dtcm_inside :: proc(addr: u32) -> bool {
+    base := dtcmsize.base << 12
+    return (addr >= base) && (addr < (base + (512 << dtcmsize.vsize)))
 }

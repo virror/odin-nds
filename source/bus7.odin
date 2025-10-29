@@ -90,9 +90,9 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
     switch(addr_id) {
     case 0x00000000: //BIOS
         break
-    case 0x02000000: //WRAM
-        addr &= 0x32FFFFF
-        break
+    case 0x02000000: //Main RAM
+        addr &= 0x23FFFFF
+        return bus9_read_mram(addr)
     case 0x03000000: //WRAM
         if(addr >= 0x3800000) {
             return mem[addr & 0x380FFFF]
@@ -145,8 +145,9 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
     switch(addr_id) {
     case 0x0000000: //BIOS
         return //Read only
-    case 0x2000000: //WRAM
-        addr &= 0x32FFFFF
+    case 0x2000000: //Main RAM
+        addr &= 0x23FFFFF
+        bus9_write_mram(addr, value)
         break
     case 0x3000000: //WRAM
         if(addr >= 0x3800000) {
@@ -205,6 +206,9 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
 }
 
 bus7_get16 :: proc(addr: u32) -> u16 {
+    if((addr & 0xF000000) == 0x200000 ) {
+        fmt.println("get16 7 from main ram")
+    }
     return (cast(^u16)&mem[addr])^
 }
 
@@ -271,6 +275,9 @@ bus7_write16 :: proc(addr: u32, value: u16) {
 bus7_get32 :: proc(addr: u32) -> u32 {
     addr := addr
     addr &= 0xFFFFFFFC
+    if((addr & 0xF000000) == 0x200000 ) {
+        fmt.println("get32 7 from main ram")
+    }
     return (cast(^u32)&mem[addr])^
 }
 
