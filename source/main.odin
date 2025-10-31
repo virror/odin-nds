@@ -160,17 +160,7 @@ main :: proc() {
             emu.render_pre()
             emu.render_set_shader()
             if(redraw || pause) {
-                n := emu.texture_create(WIN_WIDTH, WIN_HEIGHT, &ppu_get_pixels()[0], 2)
-                emu.render_quad({
-                    texture = n,
-                    position = {-resolution.x / 2, 0},
-                    size = {resolution.x, resolution.y},
-                    scale = 1,
-                    offset = {0, 0},
-                    flip = {0, 0},
-                    color = {1, 1, 1, 1},
-                })
-                emu.texture_destroy(n)
+                render_screens()
                 redraw = false
             }
             emu.ui_render()
@@ -186,6 +176,40 @@ main :: proc() {
             accumulated_time = 0
         }
     }
+}
+
+render_screens :: proc() {
+    tex1 := emu.texture_create(WIN_WIDTH, WIN_HEIGHT, &ppu_get_pixels(0)[0], 2)
+    tex2 := emu.texture_create(WIN_WIDTH, WIN_HEIGHT, &ppu_get_pixels(1)[0], 2)
+    if(powercnt1.swap) {
+        if(powercnt1.geA_enable) {
+            render_quad(tex1, 0)
+        }
+        if(powercnt1.geB_enable) {
+            render_quad(tex2, -resolution.y)
+        }
+    } else {
+        if(powercnt1.geA_enable) {
+            render_quad(tex1, -resolution.y)
+        }
+        if(powercnt1.geB_enable) {
+            render_quad(tex2, 0)
+        }
+    }
+    emu.texture_destroy(tex2)
+    emu.texture_destroy(tex1)
+}
+
+render_quad :: proc(tex: u32, y_pos: f32) {
+    emu.render_quad({
+        texture = tex,
+        position = {-resolution.x / 2, y_pos},
+        size = {resolution.x, resolution.y},
+        scale = 1,
+        offset = {0, 0},
+        flip = {0, 0},
+        color = {1, 1, 1, 1},
+    })
 }
 
 draw_debug :: proc() {

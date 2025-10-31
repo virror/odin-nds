@@ -20,7 +20,8 @@ cycle_count: u32
 line_count: u16
 current_state: Ppu_states
 @(private="file")
-screen_buffer: [WIN_WIDTH * WIN_WIDTH]u16
+screen_bufferA: [WIN_WIDTH * WIN_WIDTH]u16
+screen_bufferB: [WIN_WIDTH * WIN_WIDTH]u16
 dispcnt: u32
 dispstat: u16
 vcount: u16
@@ -146,7 +147,7 @@ ppu_step :: proc(cycles: u32) -> bool {
                 current_state = Ppu_states.DRAW
                 ppu_set_line(0)
                 bg := bus9_get16(BG_PALETTE)
-                for i in 0..<len(screen_buffer) {
+                for i in 0..<len(screen_bufferA) {
                     ppu_set_pixel(bg, u32(i))
                 }
             } else {
@@ -598,11 +599,16 @@ ppu_set_pixel :: proc(color: u16, pixel: u32) {
     g := color & 0x3E0
     b := (color & 0x7C00) >> 10
     new_color := (r | g | b) | 0x8000
-    screen_buffer[pixel] = new_color
+    screen_bufferA[pixel] = new_color
 }
 
-ppu_get_pixels :: proc() -> []u16 {
-    return screen_buffer[:]
+ppu_get_pixels :: proc(screen: u8) -> []u16 {
+    if(screen == 0) {
+        return screen_bufferA[:]
+    } else {
+        return screen_bufferB[:]
+    }
+    
 }
 
 ppu_write32 :: proc(addr: u32, value: u32) {

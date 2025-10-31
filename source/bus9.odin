@@ -24,6 +24,18 @@ Ipcfifocnt :: struct {
     enable: bool,
 }
 
+Powercnt1 :: bit_field u32 {
+    lcd_enable: bool    | 1,
+    geA_enable: bool    | 1,
+    re_enable: bool     | 1,
+    ge_enable: bool     | 1,
+    na1: u8             | 5,
+    geB_enable: bool    | 1,
+    na2: u8             | 5,
+    swap: bool          | 1,
+    na3: u16            | 16,
+}
+
 @(private="file")
 mem: [0xFFFFFFF]u8
 @(private="file")
@@ -43,6 +55,7 @@ wramcnt: u8
 itcm: [0x8000]u8
 @(private="file")
 dtcm: [0x4000]u8
+powercnt1: Powercnt1
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -402,8 +415,10 @@ bus9_write32 :: proc(addr: u32, value: u32) {
         case 0x40002B8, 0x40002BC, 0x4000290,
              0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
+        case 0x4000304:
+            powercnt1 = Powercnt1(value)
         case:
-            fmt.printfln("9 Addr write 32 %X", addr)
+            fmt.printfln("9 Addr write 32 %X %X", addr, value)
         }
     } else {
         bus9_write8(addr, u8(value & 0x000000FF))
