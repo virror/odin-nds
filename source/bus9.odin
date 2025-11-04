@@ -56,6 +56,8 @@ itcm: [0x8000]u8
 @(private="file")
 dtcm: [0x4000]u8
 powercnt1: Powercnt1
+@(private="file")
+ipcsync: u16
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -317,6 +319,7 @@ bus9_write16 :: proc(addr: u32, value: u16) {
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
         case 0x4000180:
+            ipcsync = value
             bus7_ipc_write((value >> 8) & 0x0F, bool((value >> 13) & 1))
         case 0x4000184:
             ipcfifocnt.send_irq = bool((value >> 2) & 1)
@@ -444,7 +447,7 @@ bus9_irq_set :: proc(bit: u8) {
 
 bus9_ipc_write :: proc(value: u16, irq: bool) {
     ipc_data = value
-    if(irq) {
+    if(irq && bool((ipcsync >> 14) & 1)) {
         bus9_irq_set(16)
     }
 }

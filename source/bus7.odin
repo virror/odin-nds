@@ -32,6 +32,8 @@ ipcfifo7: queue.Queue(u32)
 ipcfifocnt: Ipcfifocnt
 @(private="file")
 last_fifo: u32
+@(private="file")
+ipcsync: u16
 
 bus7_init :: proc() {
     bus7.read8 = bus7_read8
@@ -261,6 +263,7 @@ bus7_write16 :: proc(addr: u32, value: u16) {
     if((addr & 0xF000000) == 0x4000000 ) {
         switch(addr) {
         case 0x4000180:
+            ipcsync = value
             bus9_ipc_write((value >> 8) & 0x0F, bool((value >> 13) & 1))
         case 0x4000184:
             ipcfifocnt.send_irq = bool((value >> 2) & 1)
@@ -378,7 +381,7 @@ bus7_irq_set :: proc(bit: u8) {
 
 bus7_ipc_write :: proc(value: u16, irq: bool) {
     ipc_data = value
-    if(irq) {
+    if(irq && bool((ipcsync >> 14) & 1)) {
         bus7_irq_set(16)
     }
 }
