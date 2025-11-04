@@ -356,12 +356,12 @@ load_callback :: proc "c" (userdata: rawptr, filelist: [^]cstring, filter: i32) 
         load_btn.disabled = true
         resume_btn.disabled = true
         when !START_BIOS {
-            arm7.reset(rom_header.entry_address7, 0x4000210, 0x4000214)
+            arm7.reset(rom_header.entry_address7)
             arm7.init_no_bios()
             arm9.reset(rom_header.entry_address9)
             arm9.init_no_bios()
         } else {
-            arm7.reset(0x00000000, 0x4000210, 0x4000214)
+            arm7.reset(0x00000000)
             arm9.reset(0xFFFF0000)
         }
         draw_debug()

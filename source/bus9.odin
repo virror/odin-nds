@@ -82,8 +82,17 @@ bus9_init :: proc() {
     arm9.bus_get32 = bus9_get32
     arm9.cp15_read = cp15_read
     arm9.cp15_write = cp15_write
+    arm9.cpu_exec_irq = bus9_check_irq
 
 	queue.init(&ipcfifo9, 16)
+}
+
+bus9_check_irq :: proc() {
+    if(utils_bit_get32(bus9_get32(IO_IME), 0) && !arm9.get_cpsr().IRQ) { //IEs enabled
+        if(bus9_get32(IO_IE) & bus9_get32(IO_IF) > 0) { //IE triggered
+            arm9.exec_irq(u32(cp15cntreg.irq_vector) * 0xFFFF0000 + 0x18)
+        }
+    }
 }
 
 bus9_reset :: proc() {

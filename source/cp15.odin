@@ -8,12 +8,14 @@ Tcmsize :: struct {
 }
 
 Cp15cnt :: bit_field u32 {
-    na1: u32            | 16,
+    na1: u32            | 13,
+    irq_vector: bool    | 1,
+    na2: u32            | 2,
     dtcm_enable: bool   | 1,
     dtcm_load: bool     | 1,
     itcm_enable: bool   | 1,
     itcm_load: bool     | 1,
-    na2: u32            | 12,
+    na3: u32            | 12,
 }
 
 cp15cntreg: Cp15cnt
