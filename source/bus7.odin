@@ -64,7 +64,7 @@ bus7_reset :: proc() {
 }
 
 bus7_load_bios :: proc() {
-    file, err := os.open("biosnds9.rom", os.O_RDONLY)
+    file, err := os.open("biosnds7.rom", os.O_RDONLY)
     assert(err == nil, "Failed to open bios")
     _, err2 := os.read(file, mem[:])
     assert(err2 == nil, "Failed to read bios data")
