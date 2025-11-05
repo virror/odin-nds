@@ -307,6 +307,9 @@ bus7_read32 :: proc(addr: u32) -> u32 {
             if(ipcfifocnt.enable) {
                 if(queue.len(ipcfifo9) > 0) {
                     last_fifo = queue.dequeue(&ipcfifo9)
+                    if(queue.len(ipcfifo9) == 0) {
+                        bus9_ipcfifo_empty()
+                    }
                     return last_fifo
                 } else {
                     ipcfifocnt.error = true
@@ -353,6 +356,9 @@ bus7_write32 :: proc(addr: u32, value: u32) {
         case 0x4000188:
             if(ipcfifocnt.enable) {
                 queue.enqueue(&ipcfifo7, value)
+                if(queue.len(ipcfifo7) == 1) {
+                    bus9_ipcfifo_not_empty()
+                }
             }
         case IO_IME:
             bus7_set32(addr, value)
@@ -383,5 +389,17 @@ bus7_ipc_write :: proc(value: u16, irq: bool) {
     ipc_data = value
     if(irq && bool((ipcsync >> 14) & 1)) {
         bus7_irq_set(16)
+    }
+}
+
+bus7_ipcfifo_not_empty :: proc() {
+    if(ipcfifocnt.rec_irq) {
+        bus7_irq_set(18)
+    }
+}
+
+bus7_ipcfifo_empty :: proc() {
+    if(ipcfifocnt.send_irq) {
+        bus7_irq_set(17)
     }
 }
