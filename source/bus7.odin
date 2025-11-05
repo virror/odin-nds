@@ -184,7 +184,8 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
     case 0x4000000: //IO
         //fmt.printfln("%X %d",addr, value)
         switch(addr) {
-
+        case IO_IME:
+            bus7_set8(addr, value)
         case:
             fmt.printfln("7 Addr write 8 %X", addr)
             mem[addr] = value

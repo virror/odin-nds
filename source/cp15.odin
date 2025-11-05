@@ -96,6 +96,24 @@ cp15_write :: proc(CRn: u32, CRm: u32, CP: u32, value: u32) {
     case 0x7A4: // Drain Write Buffer
         // Cache not implemented
 
+       // Protection unit
+    case 0x600: // Protection Unit Data/Unified Region 0
+        // PU not implemented
+    case 0x610: // Protection Unit Data/Unified Region 1
+        // PU not implemented
+    case 0x620: // Protection Unit Data/Unified Region 2
+        // PU not implemented
+    case 0x630: // Protection Unit Data/Unified Region 3
+        // PU not implemented
+    case 0x640: // Protection Unit Data/Unified Region 4
+        // PU not implemented
+    case 0x650: // Protection Unit Data/Unified Region 5
+        // PU not implemented
+    case 0x660: // Protection Unit Data/Unified Region 6
+        // PU not implemented
+    case 0x670: // Protection Unit Data/Unified Region 7
+        // PU not implemented
+
     // TCM
     case 0x910: // TCM Data TCM Base and Virtual Size
         dtcmsize.vsize = ((value >> 1) & 0x1F)

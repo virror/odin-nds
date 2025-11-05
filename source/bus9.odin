@@ -335,6 +335,8 @@ bus9_write16 :: proc(addr: u32, value: u16) {
             bus9_set16(addr, value)
         case 0x4000280, 0x40002B0:
             math_write16(addr, value)
+        case 0x4000304:
+            powercnt1 = Powercnt1(value)
         case:
             fmt.printfln("9 Addr write 16 %X", addr)
         }
