@@ -127,6 +127,8 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         break
     case 0x04000000: //IO
         switch(addr) {
+        case 0x4000240:
+            return bus9_get_vramstat()
         case 0x4000241:
             return wramcnt
         case:
@@ -138,11 +140,9 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         addr &= 0x50004FF
         break
     case 0x06000000: //VRAM
-        /*addr &= 0x601FFFF
-        if(addr >= 0x6018000) {
-            addr -= 0x8000
-        }*/
-        break
+        apa := bus9_get_vram(addr)
+        fmt.printfln("%X, %d", addr, apa)
+        return apa
     case 0x07000000: //OBJ RAM
         addr &= 0x70004FF
         break
@@ -182,7 +182,6 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         }
         break
     case 0x4000000: //IO
-        //fmt.printfln("%X %d",addr, value)
         switch(addr) {
         case IO_IME:
             bus7_set8(addr, value)
@@ -201,7 +200,6 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         }
         break
     case 0x6000000: //VRAM
-        //addr &= 0x601FFFF
         break
     case 0x7000000: //OBJ RAM
         addr &= 0x70004FF

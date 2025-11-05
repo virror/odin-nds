@@ -36,6 +36,13 @@ Powercnt1 :: bit_field u32 {
     na3: u16            | 16,
 }
 
+Vramcnt :: bit_field u8 {
+    mst: u8         | 3,
+    offset: u8      | 2,
+    na: u8          | 2,
+    enable: bool    | 1,
+}
+
 @(private="file")
 mem: [0xFFFFFFF]u8
 @(private="file")
@@ -58,6 +65,8 @@ dtcm: [0x4000]u8
 powercnt1: Powercnt1
 @(private="file")
 ipcsync: u16
+@(private="file")
+vramcnt: [9]Vramcnt
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -182,10 +191,6 @@ bus9_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         addr &= 0x50004FF
         break
     case 0x06000000: //VRAM
-        /*addr &= 0x601FFFF
-        if(addr >= 0x6018000) {
-            addr -= 0x8000
-        }*/
         break
     case 0x07000000: //OBJ RAM
         addr &= 0x70004FF
@@ -231,10 +236,27 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
             }
         break
     case 0x4000000: //IO
-        //fmt.printfln("%X %d",addr, value)
         switch(addr) {
+        case 0x4000240:
+            vramcnt[0] = Vramcnt(value)
+        case 0x4000241:
+            vramcnt[1] = Vramcnt(value)
+        case 0x4000242:
+            vramcnt[2] = Vramcnt(value)
+        case 0x4000243:
+            vramcnt[3] = Vramcnt(value)
+        case 0x4000244:
+            vramcnt[4] = Vramcnt(value)
+        case 0x4000245:
+            vramcnt[5] = Vramcnt(value)
+        case 0x4000246:
+            vramcnt[6] = Vramcnt(value)
         case 0x4000247:
             wramcnt = value
+        case 0x4000248:
+            vramcnt[7] = Vramcnt(value)
+        case 0x4000249:
+            vramcnt[8] = Vramcnt(value)
         case:
             fmt.printfln("9 Addr write 8 %X", addr)
             mem[addr] = value
@@ -250,7 +272,6 @@ bus9_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         }
         break
     case 0x6000000: //VRAM
-        //addr &= 0x601FFFF
         break
     case 0x7000000: //OBJ RAM
         addr &= 0x70004FF
@@ -491,4 +512,21 @@ bus9_write_mram :: proc(addr: u32, value: u8) {
 bus9_dtcm_inside :: proc(addr: u32) -> bool {
     base := dtcmsize.base << 12
     return (addr >= base) && (addr < (base + (512 << dtcmsize.vsize)))
+}
+
+bus9_get_vramstat :: proc() -> u8 {
+    bit0 := u8(vramcnt[2].enable && vramcnt[2].mst == 2)
+    bit1 := u8(vramcnt[3].enable && vramcnt[3].mst == 2)
+    return bit0 | (bit1 << 1)
+}
+
+bus9_get_vram :: proc(addr: u32) -> u8 {
+    if(vramcnt[2].enable) {
+        fmt.printfln("Final addr %X", addr + 0x800000 + (u32(vramcnt[2].offset & 1) * 0x20000))
+        return mem[addr + 0x840000 - (u32(vramcnt[2].offset & 1) * 0x20000)]
+    }
+    if(vramcnt[3].enable) {
+        return mem[addr + 0x860000 - (u32(vramcnt[3].offset & 1) * 0x20000)]
+    }
+    return 0
 }
