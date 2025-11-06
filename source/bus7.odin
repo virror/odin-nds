@@ -186,7 +186,7 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         case IO_IME:
             bus7_set8(addr, value)
         case:
-            fmt.printfln("7 Addr write 8 %X", addr)
+            fmt.printfln("7 Addr write 8 %X %X", addr, value)
             mem[addr] = value
         }
         return
@@ -275,7 +275,7 @@ bus7_write16 :: proc(addr: u32, value: u16) {
             }
             ipcfifocnt.enable = bool((value >> 15) & 1)
         case:
-            fmt.printfln("7 Addr write 16 %X", addr)
+            fmt.printfln("7 Addr write 16 %X %X", addr, value)
         }
     } else {
         bus7_write8(addr, u8(value & 0x00FF), 2)
@@ -322,6 +322,8 @@ bus7_read32 :: proc(addr: u32) -> u32 {
                     return 0
                 }
             }
+        case 0x40001A4:
+            return 0//1 << 23
         case IO_IME:
             return bus7_get32(addr)
         case IO_IE:
@@ -369,7 +371,7 @@ bus7_write32 :: proc(addr: u32, value: u32) {
              0x4000294, 0x4000298, 0x400029C:
             math_write32(addr, value)
         case:
-            fmt.printfln("7 Addr write 32 %X", addr)
+            fmt.printfln("7 Addr write 32 %X %X", addr, value)
         }
     } else {
         bus7_write8(addr, u8(value & 0x000000FF))

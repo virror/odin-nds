@@ -419,6 +419,8 @@ bus9_read32 :: proc(addr: u32) -> u32 {
         case 0x40002B4, 0x40002A0, 0x40002A4,
              0x40002A8, 0x40002AC:
             return math_read32(addr)
+        case 0x4004008:   //Check if DSi, return 0
+            return 0
         case:
             fmt.printfln("9 Addr read 32 %X", addr)
         }
@@ -522,11 +524,20 @@ bus9_get_vramstat :: proc() -> u8 {
 
 bus9_get_vram :: proc(addr: u32) -> u8 {
     if(vramcnt[2].enable) {
-        fmt.printfln("Final addr %X", addr + 0x800000 + (u32(vramcnt[2].offset & 1) * 0x20000))
-        return mem[addr + 0x840000 - (u32(vramcnt[2].offset & 1) * 0x20000)]
+        offset := (u32(vramcnt[2].offset & 1) * 0x20000)
+        base := 0x6800000 + offset
+        address := addr + 0x840000 - offset
+        if(address > base && address < base + 0x20000) {
+            return mem[address]
+        }
     }
     if(vramcnt[3].enable) {
-        return mem[addr + 0x860000 - (u32(vramcnt[3].offset & 1) * 0x20000)]
+        offset := (u32(vramcnt[3].offset & 1) * 0x20000)
+        base := 0x6800000 + offset
+        address := addr + 0x860000 - offset
+        if(address > base && address < base + 0x20000) {
+            return mem[address]
+        }
     }
     return 0
 }

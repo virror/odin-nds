@@ -21,6 +21,7 @@ Cp15cnt :: bit_field u32 {
 cp15cntreg: Cp15cnt
 dtcmsize: Tcmsize
 itcmsize: Tcmsize
+puDataRegion: [8]u32
 
 cp15_read :: proc(CRn: u32, CRm: u32, CP: u32) -> u32 {
     code := (CRn << 8) | (CRm << 4) | CP
@@ -53,21 +54,21 @@ cp15_read :: proc(CRn: u32, CRm: u32, CP: u32) -> u32 {
 
     // Protection unit
     case 0x600: // Protection Unit Data/Unified Region 0
-        return 0
+        return puDataRegion[0]
     case 0x610: // Protection Unit Data/Unified Region 1
-        return 0
+        return puDataRegion[1]
     case 0x620: // Protection Unit Data/Unified Region 2
-        return 0
+        return puDataRegion[2]
     case 0x630: // Protection Unit Data/Unified Region 3
-        return 0
+        return puDataRegion[3]
     case 0x640: // Protection Unit Data/Unified Region 4
-        return 0
+        return puDataRegion[4]
     case 0x650: // Protection Unit Data/Unified Region 5
-        return 0
+        return puDataRegion[5]
     case 0x660: // Protection Unit Data/Unified Region 6
-        return 0
+        return puDataRegion[6]
     case 0x670: // Protection Unit Data/Unified Region 7
-        return 0
+        return puDataRegion[7]
 
     // TCM
     case 0x910: // TCM Data TCM Base and Virtual Size
@@ -96,23 +97,31 @@ cp15_write :: proc(CRn: u32, CRm: u32, CP: u32, value: u32) {
     case 0x7A4: // Drain Write Buffer
         // Cache not implemented
 
-       // Protection unit
+    // Protection unit
     case 0x600: // Protection Unit Data/Unified Region 0
         // PU not implemented
+        puDataRegion[0] = value
     case 0x610: // Protection Unit Data/Unified Region 1
         // PU not implemented
+        puDataRegion[1] = value
     case 0x620: // Protection Unit Data/Unified Region 2
         // PU not implemented
+        puDataRegion[2] = value
     case 0x630: // Protection Unit Data/Unified Region 3
         // PU not implemented
+        puDataRegion[3] = value
     case 0x640: // Protection Unit Data/Unified Region 4
         // PU not implemented
+        puDataRegion[4] = value
     case 0x650: // Protection Unit Data/Unified Region 5
         // PU not implemented
+        puDataRegion[5] = value
     case 0x660: // Protection Unit Data/Unified Region 6
         // PU not implemented
+        puDataRegion[6] = value
     case 0x670: // Protection Unit Data/Unified Region 7
         // PU not implemented
+        puDataRegion[7] = value
 
     // TCM
     case 0x910: // TCM Data TCM Base and Virtual Size
