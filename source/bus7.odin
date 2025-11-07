@@ -127,6 +127,8 @@ bus7_read8 :: proc(addr: u32, width: u8 = 1) -> u8 {
         break
     case 0x04000000: //IO
         switch(addr) {
+        case 0x4000138:
+            return rtc_read()
         case 0x4000240:
             return bus9_get_vramstat()
         case 0x4000241:
@@ -183,6 +185,8 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         break
     case 0x4000000: //IO
         switch(addr) {
+        case 0x4000138:
+            rtc_write(value)
         case IO_IME:
             bus7_set8(addr, value)
         case:

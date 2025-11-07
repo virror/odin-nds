@@ -14,7 +14,7 @@ WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
 DEBUG :: false
-START_BIOS :: false
+START_BIOS :: true
 
 @(private="file")
 window: ^sdl.Window
@@ -95,6 +95,7 @@ main :: proc() {
 
     bus7_init()
     bus9_init()
+    rtc_init()
     /*tmr_init(&timer0, 0)
     tmr_init(&timer1, 1)
     tmr_init(&timer2, 2)
