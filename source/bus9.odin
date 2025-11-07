@@ -67,6 +67,7 @@ powercnt1: Powercnt1
 ipcsync: u16
 @(private="file")
 vramcnt: [9]Vramcnt
+exmemcnt: u16
 
 bus9_init :: proc() {
     bus9.read8 = bus9_read8
@@ -352,6 +353,9 @@ bus9_write16 :: proc(addr: u32, value: u16) {
                 ipcfifocnt.error = false
             }
             ipcfifocnt.enable = bool((value >> 15) & 1)
+        case 0x4000204:
+            exmemcnt = value
+            bus7_set_exmemstat(value)
         case IO_IME:
             bus9_set16(addr, value)
         case 0x4000280, 0x40002B0:
@@ -359,7 +363,7 @@ bus9_write16 :: proc(addr: u32, value: u16) {
         case 0x4000304:
             powercnt1 = Powercnt1(value)
         case:
-            fmt.printfln("9 Addr write 16 %X", addr)
+            fmt.printfln("9 Addr write 16 %X %X", addr, value)
         }
     } else {
         bus9_write8(addr, u8(value & 0x00FF), 2)
@@ -449,6 +453,8 @@ bus9_write32 :: proc(addr: u32, value: u32) {
                     bus7_ipcfifo_not_empty()
                 }
             }
+        case 0x40001A0..=0x40001A4:
+            cart_write32(addr, value, false)
         case IO_IME:
             bus9_set32(addr, value)
         case IO_IE:

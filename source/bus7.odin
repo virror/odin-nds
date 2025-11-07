@@ -34,6 +34,8 @@ ipcfifocnt: Ipcfifocnt
 last_fifo: u32
 @(private="file")
 ipcsync: u16
+@(private="file")
+exmemstat: u16
 
 bus7_init :: proc() {
     bus7.read8 = bus7_read8
@@ -187,6 +189,8 @@ bus7_write8 :: proc(addr: u32, value: u8, width: u8 = 1) {
         switch(addr) {
         case 0x4000138:
             rtc_write(value)
+        case 0x40001A0..=0x40001AF:
+            cart_write8(addr, value, true)
         case IO_IME:
             bus7_set8(addr, value)
         case:
@@ -278,6 +282,9 @@ bus7_write16 :: proc(addr: u32, value: u16) {
                 ipcfifocnt.error = false
             }
             ipcfifocnt.enable = bool((value >> 15) & 1)
+        case 0x4000204:
+            exmemstat &= 0xFF80
+            exmemstat |= (value & 0x7F)
         case:
             fmt.printfln("7 Addr write 16 %X %X", addr, value)
         }
@@ -365,6 +372,8 @@ bus7_write32 :: proc(addr: u32, value: u32) {
                     bus9_ipcfifo_not_empty()
                 }
             }
+        case 0x40001A4:
+            cart_write32(addr, value, true)
         case IO_IME:
             bus7_set32(addr, value)
         case IO_IE:
@@ -407,4 +416,9 @@ bus7_ipcfifo_empty :: proc() {
     if(ipcfifocnt.send_irq) {
         bus7_irq_set(17)
     }
+}
+
+bus7_set_exmemstat :: proc(value: u16) {
+    exmemstat &= 0x7F
+    exmemstat |= (value & 0xFF80)
 }
