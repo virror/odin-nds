@@ -22,6 +22,7 @@ cp15cntreg: Cp15cnt
 dtcmsize: Tcmsize
 itcmsize: Tcmsize
 puDataRegion: [8]u32
+cache: [7]u32
 
 cp15_read :: proc(CRn: u32, CRm: u32, CP: u32) -> u32 {
     code := (CRn << 8) | (CRm << 4) | CP
@@ -38,19 +39,19 @@ cp15_read :: proc(CRn: u32, CRm: u32, CP: u32) -> u32 {
 
     // Cache
     case 0x200: // Cachability Bits for Data/Unified Protection Region
-        return 0
+        return cache[0]
     case 0x201: // Cachability Bits for Instruction Protection Region
-        return 0
+        return cache[1]
     case 0x300: // Cache Write-Bufferability Bits for Data Protection Regions
-        return 0
+        return cache[2]
     case 0x500: // Access Permission Data/Unified Protection Region
-        return 0
+        return cache[3]
     case 0x501: // Access Permission Instruction Protection Region
-        return 0
+        return cache[4]
     case 0x502: // Extended Access Permission Data/Unified Protection Region
-        return 0
+        return cache[5]
     case 0x503: // Extended Access Permission Instruction Protection Region
-        return 0
+        return cache[6]
 
     // Protection unit
     case 0x600: // Protection Unit Data/Unified Region 0
@@ -90,6 +91,27 @@ cp15_write :: proc(CRn: u32, CRm: u32, CP: u32, value: u32) {
         cp15cntreg = Cp15cnt(value)
 
     // Cache
+    case 0x200: // Cachability Bits for Data/Unified Protection Region
+        // Cache not implemented
+        cache[0] = value
+    case 0x201: // Cachability Bits for Instruction Protection Region
+        // Cache not implemented
+        cache[1] = value
+    case 0x300: // Cache Write-Bufferability Bits for Data Protection Regions
+        // Cache not implemented
+        cache[2] = value
+    case 0x500: // Access Permission Data/Unified Protection Region
+        // Cache not implemented
+        cache[3] = value
+    case 0x501: // Access Permission Instruction Protection Region
+        // Cache not implemented
+        cache[4] = value
+    case 0x502: // Extended Access Permission Data/Unified Protection Region
+        // Cache not implemented
+        cache[5] = value
+    case 0x503: // Extended Access Permission Instruction Protection Region
+        // Cache not implemented
+        cache[6] = value
     case 0x750: // Invalidate Entire Instruction Cache
         // Cache not implemented
     case 0x760: // Invalidate Entire Data Cache
