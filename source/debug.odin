@@ -13,8 +13,8 @@ debug_init :: proc() {
 }
 
 debug_draw :: proc() {
-    cpsr := arm7.get_cpsr()
-    debug_draw_reg("PC  ", arm7.reg_get(arm7.Regs.PC), 10, 10)
+    cpsr := arm9.get_cpsr()
+    debug_draw_reg("PC  ", arm9.reg_get(arm9.Regs.PC), 10, 10)
     debug_draw_reg("R0  ", arm9.reg_get(arm9.Regs.R0), 180, 10)
     debug_draw_reg("R1  ", arm9.reg_get(arm9.Regs.R1), 10, 35)
     debug_draw_reg("R2  ", arm9.reg_get(arm9.Regs.R2), 180, 35)
@@ -64,25 +64,25 @@ debug_draw :: proc() {
     mode := cpsr.Mode
     mode_name: cstring
     switch(mode) {
-    case arm7.Modes.M_USER:
+    case arm9.Modes.M_USER:
         mode_name = "User"
         break
-    case arm7.Modes.M_FIQ:
+    case arm9.Modes.M_FIQ:
         mode_name = "FIQ"
         break
-    case arm7.Modes.M_IRQ:
+    case arm9.Modes.M_IRQ:
         mode_name = "IRQ"
         break
-    case arm7.Modes.M_SUPERVISOR:
+    case arm9.Modes.M_SUPERVISOR:
         mode_name = "Supervisor"
         break
-    case arm7.Modes.M_ABORT:
+    case arm9.Modes.M_ABORT:
         mode_name = "Abort"
         break
-    case arm7.Modes.M_UNDEFINED:
+    case arm9.Modes.M_UNDEFINED:
         mode_name = "Undefined"
         break
-    case arm7.Modes.M_SYSTEM:
+    case arm9.Modes.M_SYSTEM:
         mode_name = "System"
         break
     case:
@@ -108,7 +108,7 @@ debug_draw_op_arm :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
 }
 
 debug_draw_op_thumb :: proc(opText: cstring, pc: u32, posX: f32, posY: f32) {
-    op := u16(arm7.get_instruction(pc))
+    op := u16(arm9.get_instruction(pc))
     name := debug_get_thumb_names(op)
     line := fmt.caprintf("%s %4x %s", opText, op, name)
     debug_text(line, posX, posY, {230, 230, 230, 230})
@@ -125,7 +125,7 @@ debug_draw_reg2 :: proc(regText: cstring, reg: u32, posX: f32, posY: f32, mode: 
         current_mode = arm9.Modes.M_SYSTEM
     }
     line := fmt.caprintf("%s %8x", regText, reg)
-    if(current_mode == mode) {
+    if(current_mode == mode || mode == arm9.Modes.M_USER && current_mode == arm9.Modes.M_SYSTEM) {
         debug_text(line, posX, posY, {230, 230, 230, 230})
     } else {
         debug_text(line, posX, posY, {130, 130, 130, 230})
