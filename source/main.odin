@@ -14,7 +14,7 @@ WIN_HEIGHT :: 192
 WIN_SCALE :: 2
 
 DEBUG :: false
-START_BIOS :: true
+START_BIOS :: false
 
 @(private="file")
 window: ^sdl.Window
@@ -82,6 +82,7 @@ main :: proc() {
         debug_init()
         defer debug_quit()
     }
+    sdl.RaiseWindow(window)
     // Audio stuff
     desired: sdl.AudioSpec
     desired.freq = 48000
